@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block body %}
+<body class="hold-transition sidebar-mini">
+{% endblock %}
+
+
+{% block content %}
+
+<!-- перебор новостей -->
+{% for item in news%}
+<!-- если опубликована, админ видит все -->
+{% if item.is_published or current_user.user_type_id == 1 %}
+
+<!-- Default box -->
+
+<!--Заголовок новости-->
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">{{item.title}}</h3>
+
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+        <i class="fas fa-minus"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- контент новости -->
+
+  <div class="card-body">
+    <p class="lead small">
+      {% autoescape false %}
+      {{item.content}}
+      {% endautoescape %}
+    </p>
+  </div>
+  <!-- /.card-body -->
+
+  <div class="card-footer">
+
+      <figcaption class="blockquote-footer text-end">
+        Автор: <span class="badge badge-pill badge-light">{{item.user.name}}</span>,
+        Дата написания: <span class="badge badge-pill badge-light">{{item.created_date}}</span>
+      </figcaption>
+      <!-- конопочки только админам  -->
+
+      <div>
+        <!-- кнопка показа комментариев -->
+        {% if item.comments|length > 0 %}
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-toggle="collapse" data-target="#collapse{{item.id}}" aria-expanded="false" aria-controls="collapseExample">
+              Комментарии <span class="badge badge-light">{{item.comments|length}}</span>
+            </button>
+        {% endif %}
+
+        <!-- кнопка добавления комментариев -->
+        {% if current_user.is_authenticated %}
+        <button type="button" class="btn btn-outline-info btn-sm" data-toggle="modal"
+                data-target="#exampleModal{{item.id}}">Добавить комментарий
+        </button>
+        {% endif %}
+
+       <!-- конопочки только админам  -->
+        {% if current_user.is_authenticated and current_user.user_type_id == 1 %}
+        <a href="../news/{{ item.id }}" class="btn btn-outline-warning btn-sm">
+          Изменить
+        </a>
+        <a href="../news_delete/{{ item.id }}" class="btn btn-outline-danger btn-sm">
+          Удалить
+        </a>
+      </div>
+      {% endif %}
+      <!-- end конопочки только админам  -->
+
+  </div>
+  <!-- end контент новости -->
+
+
+
+
+
+  <!-- показ комментариев -->
+  <div class="collapse" id="collapse{{item.id}}">
+    <div class="card-footer">
+      <div class="card-body">
+        {% for x in item.comments %}
+          <div class="col-md4 border rounded">
+            <div class="align-left">
+              <p class="blockquote-footer text-end bd-highlight">
+                <span class="badge badge-pill badge-light">{{ x.created_date }}</span>
+                Автор: <span class="badge badge-pill badge-light">{{x.user.name}}</span>
+              </p>
+            </div>
+
+            <div class="card">
+              <p class="text-muted text-lg-left text-sm">
+                <small>{{ x.content }}</small>
+              </p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <!-- end показ комментариев -->
+
+</div>
+
+<!-- end если опубликована, админ видит все -->
+{% endif %}
+
+<!-- end перебор новостей -->
+{% endfor %}
+
+
+<br>
+
+{% endblock %}

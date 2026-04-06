@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block body %}
+<body class="hold-transition sidebar-mini">
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-body">
+
+    <p>При удалении пользователя, все написанные им комментарии так же будут удалены.</p>
+    <p>Удалить самого себя невозможно.</p>
+    <p>Удалить всех админов невозможно.</p>
+    <p>Админ не может себя понизить в роли.</p>
+
+  </div>
+</div>
+
+<!-- админ видит все -->
+{% if current_user.user_type_id == 1 %}
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <div class="card-body">
+          <table class="table table-bordered">
+            <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Полное имя</th>
+              <th scope="col">Логин</th>
+              <th scope="col">Email</th>
+              <th scope="col">Тип пользователя</th>
+              <th scope="col">Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- перебор users -->
+            {% for item in users%}
+            <tr>
+              <td>{{ item.id }}</td>
+              <td>{{ item.name }}</td>
+              <td>{{ item.login }}</td>
+              <td>{{ item.email }}</td>
+              {% if item.user_type_id == 1 %}
+              <td><span class="badge bg-danger">{{ item.users_type.users_type }}</span></td>
+              {% else %}
+              <td><span class="badge bg-success">{{ item.users_type.users_type }}</span></td>
+              {% endif %}
+              <td>
+                <a href="../user/{{ item.id }}" class="btn btn-outline-warning btn-sm">
+                  Изменить
+                </a>
+                <a href="../user_delete/{{ item.id }}" class="btn btn-outline-danger btn-sm"
+                   title="удаление пользователя удалит его комментарии">
+                  Удалить
+                </a>
+              </td>
+            </tr>
+            <!-- end перебор пользователей -->
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- end  админ видит все -->
+{% endif %}
+
+
+{% endblock %}

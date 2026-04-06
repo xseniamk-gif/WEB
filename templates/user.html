@@ -1,0 +1,136 @@
+{% extends "base_noheader.html" %}
+
+{% block body %}
+<body class="hold-transition login-page">
+{% endblock %}
+
+
+{% block content %}
+
+<div class="login-box">
+  <div class="login-logo">
+    <a href="/"><b>{{ title }}</b></a>
+  </div>
+  <!-- /.login-logo -->
+  <div class="card">
+    <div class="card-body login-card-body">
+
+      <p class="login-box-msg">Отредактируйте данные</p>
+
+      <form action="" method="post">
+        {{ form.hidden_tag() }}
+        {% if message %}
+          <div class="alert alert-danger">{{ message }}</div>
+        {% endif %}
+
+        <div class="input-group mb-3">
+          {{ form.name(class="form-control", type="form-control", id="name",
+            placeholder="Enter your Full Name") }}
+          {% for error in form.name.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+          {% endfor %}
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fas fa-user"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group mb-3">
+          {{ form.email(class="form-control", type="email", id="email",
+          placeholder="Enter your Email") }}
+          {% for error in form.email.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+          {% endfor %}
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fas fa-envelope"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group mb-3">
+          {{ form.login(class="form-control", type="form-control", id="login",
+              placeholder="Enter your Login") }}
+          {% for error in form.login.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+          {% endfor %}
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fas fa-user"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group mb-3">
+          {{ form.password(class="form-control", id="password", type="password",
+            placeholder="Enter your Password") }}
+          {% for error in form.password.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+          {% endfor %}
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fas fa-lock"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group mb-3">
+          {{ form.password_again(class="form-control", id="confirm", type="password",
+                    placeholder="Confirm your Password") }}
+          {% for error in form.password_again.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+          {% endfor %}
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fas fa-lock"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group mb-3">
+          {{ form.user_type_id(class="form-control", id="user_type_id", type="form-user_type_id",
+                    placeholder="Confirm your Password") }}
+          {% for error in form.user_type_id.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+          {% endfor %}
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fas fa-users"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-8">
+
+          </div>
+          <!-- /.col -->
+          <div class="col">
+            {{ form.submit(type="submit", class="btn btn-primary btn-block") }}
+          </div>
+          <div class="col">
+            <button href="/users"  class="btn btn-primary btn-block">Закрыть</button>
+          </div>
+          <!-- /.col -->
+        </div>
+      </form>
+    </div>
+    <!-- /.login-card-body -->
+  </div>
+</div>
+<!-- /.login-box -->
+
+{% endblock %}

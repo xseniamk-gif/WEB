@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block body %}
+<body class="hold-transition sidebar-mini">
+{% endblock %}
+
+{% block content %}
+
+{% if current_user.is_authenticated and current_user.user_type_id == 1 %}
+
+  <!-- general form elements -->
+  <div class="card card-primary">
+
+    <!-- form start -->
+    <form class="form-horizontal" method="post" action="">
+      {{ form.hidden_tag() }}
+      {% if message %}
+        <div class="alert alert-danger">{{ message }}</div>
+      {% endif %}
+      <div class="card-body">
+        <div class="form-group">
+          <div class="modal fade" aria-hidden="true">
+            {{ form.category_id(class="form-control", type="form-control", id="id") }}
+         </div>
+          <label>
+            Новое имя категории новостей
+          </label>
+          {{ form.name(class="form-control", type="form-name", id="name",
+          placeholder="Enter category Name") }}
+          {% for error in form.name.errors %}
+          <p class="alert alert-danger" role="alert">
+              {{ error }}
+          </p>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="card-footer">
+        {{ form.submit(type="submit", class="btn btn-outline-success btn-sm") }}
+        <button type="submit" href="../categories" class="btn btn-outline-info btn-sm">Закрыть</button>
+      </div>
+    </form>
+  </div>
+
+
+{% endif %}
+
+
+{% endblock %}
