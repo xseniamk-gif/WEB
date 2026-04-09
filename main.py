@@ -6,15 +6,11 @@ from flask import Flask, render_template, redirect, make_response, request, sess
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 # from flask_wtf import CsrfProtect
 from flask_wtf.csrf import CSRFError, CSRFProtect
-#
-# from data import db_session, news_resources, users_resources
+
+from data import db_session
 # from data.comments import Comments
-# from data.news import News, Category
-# from data.users import Users, UsersTypes
-# from forms.category import CategoryForm
-# from forms.comment import CommentForm
-# from forms.news import NewsForm
-# from forms.user import RegisterForm, LoginForm, UserForm
+from data.tours import Tours, Category
+from data.users import Users, UsersTypes
 
 from flask_restful import reqparse, abort, Api, Resource
 
@@ -24,7 +20,10 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from flask import Flask, render_template, redirect, make_response, jsonify, request, abort
 from sqlalchemy.orm.collections import collection
 
-
+from forms.loginform import LoginForm
+from forms.registerform import RegisterForm
+from forms.toursforms import ToursForm
+from forms.userforms import UserForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -32,16 +31,6 @@ app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 
 # защита форм
 csrf = CSRFProtect(app)
-
-# # csrf отключено для API
-# api = Api(app, decorators=[csrf.exempt])
-# # для списка объектов
-# api.add_resource(news_resources.NewsListResource, '/api/v2/news')
-# api.add_resource(users_resources.UsersListResource, '/api/v2/users')
-#
-# # для одного объекта
-# api.add_resource(news_resources.NewsResource, '/api/v2/news/<int:news_id>')
-# api.add_resource(users_resources.UsersResource, '/api/v2/users/<int:user_id>')
 
 
 
@@ -65,33 +54,6 @@ def main_first():
     return render_template("main_first.html",
                            title="Главная страница")
 
-@app.route("/<int:category_id>", methods=['GET', 'POST'])
-def index(category_id: int = 0):
-    form = CommentForm()
-    db_sess = db_session.create_session()
-    if category_id != 0:
-        news = db_sess.query(News).filter(News.category_id == category_id).order_by(News.created_date.desc()).all()
-    else:
-        news = db_sess.query(News).order_by(News.created_date.desc()).all()
-
-    categories = db_sess.query(Category).all()
-    if not category_id:
-        title = "Последние новости"
-    else:
-        title,  = [i.name for i in categories if i.id == category_id]
-    if form.validate_on_submit():
-        comment = Comments(content=form.content.data,
-                           users_id=current_user.id,
-                           news_id=int(form.news_id.data))
-        db_sess.add(comment)
-        db_sess.commit()
-        return redirect(f"/{category_id}")
-    return render_template("index.html",
-                           news=news,
-                           form=form,
-                           category=categories,
-                           title=title)
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -107,19 +69,14 @@ def register():
                                    form=form,
                                    message="Пользователь с такой почтой уже есть")
 
-        if db_sess.query(Users).filter(Users.login == form.login.data).first():
-            return render_template('register.html', title='Регистрация',
-                                   form=form,
-                                   message="Пользователь с таким логином уже есть")
         user = Users(
             name=form.name.data,
-            login=form.login.data,
             email=form.email.data
         )
         user.set_password(form.password.data)
         db_sess.add(user)
         db_sess.commit()
-        return redirect('/login')
+        return redirect('/')
     return render_template('register.html', title='Регистрация', form=form)
 
 
@@ -135,10 +92,10 @@ def logout():
 
 
 
-@app.route('/news/<int:id_>', methods=['GET', 'POST'])
+@app.route('/tours/admin_red', methods=['GET', 'POST'])
 @login_required
-def edit_news(id_):
-    form = NewsForm()
+def edit_tous(id_):
+    form = ToursForm()
     db_sess = db_session.create_session()
     categories = db_sess.query(Category).all()
     form.category.choices = [(i.id, i.name) for i in db_sess.query(Category).all()]
@@ -166,17 +123,65 @@ def edit_news(id_):
             return redirect('/')
         else:
             abort(404)
-    return render_template('news.html',
+    return render_template('tours_red.html',
                            title='Редактирование новости',
                            category=categories,
                            form=form)
 
+@app.route('/tours/admin_publ', methods=['GET', 'POST'])
+@login_required
+def publ_tous(id_):
+    form = ToursForm()
+    db_sess = db_session.create_session()
+    categories = db_sess.query(Category).all()
+    form.category.choices = [(i.id, i.name) for i in db_sess.query(Category).all()]
+    if request.method == "GET":
+
+        news = db_sess.query(News).filter(News.id == id_,
+                                          News.user == current_user
+                                          ).first()
+        if news:
+            form.title.data = news.title
+            form.content.data = news.content
+            form.is_published.data = news.is_published
+            form.category.data = news.category_id
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        news = db_sess.query(News).filter(News.id == id_).first()
+        if news and current_user.user_type_id == 1:
+            news.title = form.title.data
+            news.content = form.content.data
+            news.is_published = form.is_published.data
+            news.category_id = form.category.data
+            db_sess.commit()
+            return redirect('/')
+        else:
+            abort(404)
+    return render_template('tours_public.html',
+                           title='Редактирование новости',
+                           category=categories,
+                           form=form)
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user, remember=form.remember_me.data)
+            return redirect("/")
+        return render_template('login.html',
+                               message="Неправильный логин или пароль",
+                               form=form)
+    return render_template('login.html', title='Авторизация', form=form)
 
 @app.route('/news_delete/<int:id_>', methods=['GET', 'POST'])
 @login_required
-def news_delete(id_):
+def tours_delete(id_):
     db_sess = db_session.create_session()
-    news = db_sess.query(News).filter(News.id == id_).first()
+    news = db_sess.query(News).filter(Tours.id == id_).first()
     if news and current_user.user_type_id == 1:
         db_sess.delete(news)
         db_sess.commit()
@@ -328,10 +333,8 @@ def user_edit(id_: int):
 @app.route('/contacts')
 def contacts():
     db_sess = db_session.create_session()
-    category = db_sess.query(Category).all()
     return render_template('contacts.html',
-                           title='Контактная информация',
-                           category=category)
+                           title='Контактная информация')
 
 
 @app.route('/about')
@@ -379,11 +382,9 @@ def unauth_handler():
 
 
 def main():
-    # db_session.global_init("db/base.db")
+    db_session.global_init("db/base.db")
     # db_sess = db_session.create_session()
-
     port = int(os.environ.get('PORT', 5000))
-    # с дефаултными значениями будет не более 4 потоков
     app.run()
 
     serve(app, port=port, host="127.0.0.1")

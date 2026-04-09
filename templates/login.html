@@ -1,81 +1,38 @@
-extends "base_noheader.html" %}
 
-{% block body %}
-<body class="hold-transition login-page">
-{% endblock %}
+
+{% extends "base.html" %}
 
 {% block content %}
-
-
-<div class="login-box">
-  <div class="login-logo">
-    <a href="/"><b>{{ title }}</b></a>
-  </div>
-  <!-- /.login-logo -->
-  <div class="card">
-    <div class="card-body login-card-body">
-
-
-      <p class="login-box-msg">Введите логин и пароль чтобы продолжить</p>
-
-      <form action="" method="post">
-        {{ form.hidden_tag() }}
-        {% if message %}
-          <div class="alert alert-danger">{{ message }}</div>
-        {% endif %}
-        <div class="input-group mb-3">
-          {{ form.login(class="form-control", type="form-control", id="login",
-              placeholder="Enter your Login") }}
-          {% for error in form.login.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-          {% endfor %}
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-user"></span>
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h3>Авторизация</h3>
             </div>
-          </div>
-        </div>
-        <div class="input-group mb-3">
-          {{ form.password(class="form-control", id="password", type="password",
-            placeholder="Enter your Password") }}
-          {% for error in form.password.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-          {% endfor %}
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-lock"></span>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-8">
-            <div class="icheck-primary">
-              {{ form.remember_me() }}
-              <label for="remember">
-                {{ form.remember_me.label }}
-              </label>
-            </div>
-          </div>
-          <!-- /.col -->
-          <div class="col-4">
-            {{ form.submit(type="submit", class="btn btn-primary btn-block") }}
-          </div>
-          <!-- /.col -->
-        </div>
-      </form>
+            <div class="card-body">
+                <form action="" method="post">
+                    {{ form.hidden_tag() }}
 
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control", type="email") }}
+                        {% for error in form.email.errors %}
+                            <div class="alert alert-danger mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
 
-      <p class="mb-0">
-        <a href="register" class="text-center">Зарегистрировать нового пользователя</a>
-      </p>
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control", type="password") }}
+                        {% for error in form.password.errors %}
+                            <div class="alert alert-danger mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Войти</button>
+                </form>
+            </div>
+        </div>
     </div>
-    <!-- /.login-card-body -->
-  </div>
 </div>
-<!-- /.login-box -->
-
 {% endblock %}
