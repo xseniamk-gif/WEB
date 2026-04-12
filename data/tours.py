@@ -14,7 +14,7 @@ class Category(SqlAlchemyBase, SerializerMixin):
                            autoincrement=True)
     name = sqlalchemy.Column(sqlalchemy.String,
                              nullable=True)
-    tours = orm.relationship("Tours", cascade="all, delete")
+    tours = orm.relationship("Tours", cascade="all, delete", back_populates='category')
 
 
 class Tours(SqlAlchemyBase, SerializerMixin):
@@ -24,22 +24,27 @@ class Tours(SqlAlchemyBase, SerializerMixin):
                            primary_key=True, autoincrement=True)
     category_id = sqlalchemy.Column(sqlalchemy.Integer,
                                     sqlalchemy.ForeignKey("category.id"))
+    user_id = sqlalchemy.Column(sqlalchemy.Integer,
+                                sqlalchemy.ForeignKey("users.id"),
+                                nullable=True)
     title = sqlalchemy.Column(sqlalchemy.String,
                               nullable=True)
     content = sqlalchemy.Column(sqlalchemy.TEXT,
                                 nullable=True)
     is_published = sqlalchemy.Column(sqlalchemy.Boolean,
                                      default=True)
-    reviews = sqlalchemy.Column(sqlalchemy.Integer,
-                              nullable=True)
-    category = orm.relationship("Category", back_populates='tours')
+    duration = sqlalchemy.Column(sqlalchemy.Integer, default=3)
+    price = sqlalchemy.Column(sqlalchemy.Integer, default=10000)
+    img = sqlalchemy.Column(sqlalchemy.String,
+                              nullable=False)
 
+    # Связи
+    category = orm.relationship("Category", back_populates='tours')
+    author = orm.relationship("Users", foreign_keys=[user_id], backref='created_tours')  # Изменено с user на author
 
     def __repr__(self):
         return f"***\n<class={__class__.__name__}>\n" \
-               f"id={self.id}\ttitle={self.title}\tcontent={self.content} " \
+               f"id={self.id}\ttitle={self.title}\tcontent={self.content[:50] if self.content else ''}... " \
                f"\tis_published={self.is_published} " \
-               f"\tcategories={self.category} " \
+               f"\tcategory={self.category.name if self.category else None}" \
                f"\n***"
-
-

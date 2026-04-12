@@ -50,7 +50,20 @@
                             <div class="alert alert-danger mt-1">{{ error }}</div>
                         {% endfor %}
                     </div>
-
+                    <div class="mb-3">
+                        {{ form.login.label(class="form-label") }}
+                        {{ form.login(class="form-control") }}
+                        {% for error in form.login.errors %}
+                            <div class="alert alert-danger mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.number.label(class="form-label") }}
+                        {{ form.number(class="form-control") }}
+                        {% for error in form.number.errors %}
+                            <div class="alert alert-danger mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
                     <div class="mb-3">
                         {{ form.about.label(class="form-label") }}
                         {{ form.about(class="form-control", rows=3) }}

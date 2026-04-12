@@ -1,5 +1,3 @@
-
-
 {% extends "base.html" %}
 
 {% block content %}
@@ -29,8 +27,20 @@
                         {% endfor %}
                     </div>
 
+                    <div class="mb-3 form-check">
+                        {{ form.remember_me(class="form-check-input") }}
+                        {{ form.remember_me.label(class="form-check-label") }}
+                    </div>
+
                     <button type="submit" class="btn btn-primary w-100">Войти</button>
+
+                    {% if message %}
+                        <div class="alert alert-danger mt-3">{{ message }}</div>
+                    {% endif %}
                 </form>
+            </div>
+            <div class="card-footer text-center">
+                <small>Нет аккаунта? <a href="{{ url_for('register') }}">Зарегистрируйтесь</a></small>
             </div>
         </div>
     </div>
