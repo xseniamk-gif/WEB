@@ -1,10 +1,6 @@
-import logging
-import os
-import datetime
-
-from flask import Flask, render_template, redirect, make_response, request, session, abort, jsonify
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from flask_wtf.csrf import CSRFError, CSRFProtect
+from flask import Flask, render_template, redirect
+from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_wtf.csrf import CSRFProtect
 
 from data import db_session
 from data.tours import Tours, Category
@@ -114,7 +110,8 @@ def all_tour():
     tours = db_sess.query(Tours).all()
     return render_template('all_tour.html',
                            title='Список всех туров', tours=tours)
-# Если нужно больше маршрутов для конкретных категорий
+
+
 @app.route('/tours/active/hiking')
 def active_hiking():
     return render_template('all_tour.html', category='Походы')
