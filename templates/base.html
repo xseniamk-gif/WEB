@@ -10,7 +10,7 @@
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- Bootstrap Icons (добавьте эту строку) -->
+  <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
   <!-- Google Fonts -->
@@ -18,7 +18,61 @@
   <link href='https://fonts.googleapis.com/css?family=Oxygen' rel='stylesheet' type='text/css'>
 
   <style>
-    /* КРИТИЧЕСКИ ВАЖНО: z-index фикс */
+    /* Футер и контакты */
+    .footer {
+      background: #2c3e50;
+      color: white;
+      text-align: center;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .contacts {
+      text-align: center;
+      background: #ecf0f1;
+      border-radius: 10px;
+      padding: 2rem;
+      margin: 2rem 0;
+    }
+
+    .contacts p {
+      margin: 0.5rem 0;
+    }
+
+    .phone {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #3498db;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .section {
+      padding: 3rem 0;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .section:last-child {
+      border-bottom: none;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      color: #2c3e50;
+    }
+
+    @media (max-width: 768px) {
+      .section-title {
+        font-size: 1.5rem;
+      }
+    }
+
     .navbar {
       position: relative;
       z-index: 1050 !important;
@@ -48,7 +102,6 @@
       z-index: 1 !important;
     }
 
-    /* Остальные стили */
     .navbar-brand {
       font-size: 2rem !important;
       font-weight: bold;
@@ -75,6 +128,70 @@
 
     .navbar {
       font-size: 1.7rem;
+    }
+
+    /* Стили кнопок как на странице автобусов */
+    .btn-custom {
+      display: inline-block;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.3s;
+      font-weight: 500;
+    }
+
+    .btn-register {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-register:hover {
+      background: #2980b9;
+      color: white;
+    }
+
+    .btn-login {
+      background: #27ae60;
+      color: white;
+    }
+
+    .btn-login:hover {
+      background: #219a52;
+      color: white;
+    }
+
+    .btn-logout {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn-logout:hover {
+      background: #c0392b;
+      color: white;
+    }
+
+    .user-name {
+      background: #3498db;
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border-radius: 5px;
+      font-size: 1rem;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .user-name:hover {
+      background: #2980b9;
+      color: white;
+    }
+
+    .auth-buttons {
+      display: flex;
+      gap: 10px;
     }
   </style>
 </head>
@@ -115,11 +232,12 @@
           </li>
           <li class="nav-item">
             {% if current_user.is_authenticated %}
-              <a class="navbar-brand" href="/logout">{{ current_user.name }}</a>
+
+              <a class="btn-logout btn-custom" href="/profile">{{ current_user.name }}</a>
             {% else %}
-              <div class="d-flex gap-2">
-                <a class="btn btn-primary" href="/register">Зарегистрироваться</a>
-                <a class="btn btn-success" href="/login">Войти</a>
+              <div class="auth-buttons">
+                <a class="btn-register btn-custom" href="/register">Зарегистрироваться</a>
+                <a class="btn-login btn-custom" href="/login">Войти</a>
               </div>
             {% endif %}
           </li>
@@ -132,6 +250,22 @@
   <main>
     {% block content %}{% endblock %}
   </main>
+
+  <!-- Контакты (общие для всех страниц) -->
+  <div class="container">
+    <div class="contacts">
+      <h3>Свяжитесь с нами</h3>
+      <p class="phone">+7 (923) 834-34-56</p>
+      <p>bus@otdyh-legko.ru</p>
+      <p>Пн-Вс: 9:00 - 21:00</p>
+      <p>г. Новосибирск, ул. Ленина, 10</p>
+    </div>
+  </div>
+
+  <!-- Футер -->
+  <div class="footer">
+    <p>© 2024 Отдых&Легко | Комфортные поездки для вас</p>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

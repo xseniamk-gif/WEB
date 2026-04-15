@@ -1,124 +1,88 @@
 {% extends "base.html" %}
 
-{% block body %}
-<body class="hold-transition login-page">
-{% endblock %}
-
 {% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>{{ title }}</h3>
+                </div>
+                <div class="card-body">
+                    <form action="" method="post">
+                        {{ form.hidden_tag() }}
 
+                        {% if message %}
+                            <div class="alert alert-danger">{{ message }}</div>
+                        {% endif %}
 
-<div class="login-box">
-  <div class="login-logo">
-    <a href="/"><b>{{ title }}</b></a>
-  </div>
-  <!-- /.login-logo -->
-  <div class="card">
-    <div class="card-body login-card-body">
+                        <div class="mb-3">
+                            {{ form.title.label(class="form-label") }}
+                            {{ form.title(class="form-control") }}
+                            {% for error in form.title.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
 
-      <p class="login-box-msg">Введите данные чтобы продолжить</p>
+                        <div class="mb-3">
+                            {{ form.price.label(class="form-label") }}
+                            {{ form.price(class="form-control") }}
+                            {% for error in form.price.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
 
-      <form action="" method="post">
-        {{ form.hidden_tag() }}
-        {% if message %}
-          <div class="alert alert-danger">{{ message }}</div>
-        {% endif %}
+                        <div class="mb-3">
+                            {{ form.duration.label(class="form-label") }}
+                            {{ form.duration(class="form-control") }}
+                            {% for error in form.duration.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
 
-        <div class="input-group mb-3">
-          {{ form.name(class="form-control", type="form-control", id="name",
-            placeholder="Enter your Full Name") }}
-          {% for error in form.name.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-          {% endfor %}
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-user"></span>
+                        <div class="mb-3">
+                            {{ form.free_pl.label(class="form-label") }}
+                            {{ form.free_pl(class="form-control") }}
+                            {% for error in form.free_pl.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.category.label(class="form-label") }}
+                            {{ form.category(class="form-select") }}
+                            {% for error in form.category.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.content.label(class="form-label") }}
+                            {{ form.content(class="form-control", rows=10) }}
+                            {% for error in form.content.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.img.label(class="form-label") }}
+                            {{ form.img(class="form-control") }}
+                            {% for error in form.img.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            {{ form.is_published(class="form-check-input") }}
+                            {{ form.is_published.label(class="form-check-label") }}
+                        </div>
+
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="/all_tour" class="btn btn-secondary">Отмена</a>
+                    </form>
+                </div>
             </div>
-          </div>
         </div>
-
-        <div class="input-group mb-3">
-          {{ form.email(class="form-control", type="email", id="email",
-          placeholder="Enter your Email") }}
-          {% for error in form.email.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-          {% endfor %}
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-envelope"></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="input-group mb-3">
-          {{ form.login(class="form-control", type="form-control", id="login",
-              placeholder="Enter your Login") }}
-          {% for error in form.login.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-          {% endfor %}
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-user"></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="input-group mb-3">
-          {{ form.password(class="form-control", id="password", type="password",
-            placeholder="Enter your Password") }}
-          {% for error in form.password.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-          {% endfor %}
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-lock"></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="input-group mb-3">
-          {{ form.password_again(class="form-control", id="confirm", type="password",
-                    placeholder="Confirm your Password") }}
-          {% for error in form.password_again.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-          {% endfor %}
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-lock"></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col-8">
-
-          </div>
-          <!-- /.col -->
-          <div class="col">
-            {{ form.submit(type="submit", class="btn btn-primary btn-block") }}
-          </div>
-          <!-- /.col -->
-        </div>
-      </form>
-
-
-      <p class="mb-0">
-        <br>
-        <a href="login" class="text-center">Уже зарегистрированы?</a>
-      </p>
     </div>
-    <!-- /.login-card-body -->
-  </div>
 </div>
-<!-- /.login-box -->
-
 {% endblock %}

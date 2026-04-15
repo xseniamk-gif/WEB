@@ -1,13 +1,15 @@
-from flask import Flask, render_template, redirect
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask import Flask, render_template, redirect, request, abort
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_wtf.csrf import CSRFProtect
 
 from data import db_session
 from data.tours import Tours, Category
 from data.users import Users, UsersTypes
+from forms.editprofile import EditProfileForm
 
 from forms.loginform import LoginForm
 from forms.registerform import RegisterForm
+from forms.toursforms import ToursForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -36,6 +38,7 @@ def main_first():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
+    print(current_user)
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
             return render_template('register.html', title='Регистрация',
@@ -83,6 +86,45 @@ def logout():
     return redirect("/")
 
 
+@app.route('/profile')
+def profile():
+    form = EditProfileForm()
+    db_sess = db_session.create_session()
+
+
+    if request.method == "GET":
+
+        if tour:
+            form.title.data = tour.title
+            form.price.data = tour.price
+            form.duration.data = tour.duration
+            form.content.data = tour.content
+            form.free_pl.data = tour.free_pl
+            form.category.data = tour.category_id
+            form.is_published.data = tour.is_published
+            form.img.data = tour.img
+        else:
+            abort(404)
+
+    if form.validate_on_submit():
+        tour = db_sess.query(Tours).filter(Tours.id == id_).first()
+        if tour and current_user.user_type_id == 1:  # Только админ может редактировать
+            tour.title = form.title.data
+            tour.price = form.price.data
+            tour.duration = form.duration.data
+            tour.content = form.content.data
+            tour.free_pl = form.free_pl.data
+            tour.category_id = form.category.data
+            tour.is_published = form.is_published.data
+            tour.img = form.img.data
+            db_sess.commit()
+            return redirect('/all_tour')
+        else:
+            abort(404)
+
+    return render_template('login.html', title='Профиль', form=form)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -111,7 +153,54 @@ def all_tour():
     return render_template('all_tour.html',
                            title='Список всех туров', tours=tours)
 
+#
+@app.route('/tour/<int:id_>', methods=['GET', 'POST'])
+@login_required
+def tours_edit(id_):
+    form = ToursForm()
+    db_sess = db_session.create_session()
 
+    # Заполняем choices для категорий
+    categories = db_sess.query(Category).all()
+    form.category.choices = [(c.id, c.name) for c in categories]
+
+    if request.method == "GET":
+        tour = db_sess.query(Tours).filter(Tours.id == id_).first()
+        if tour:
+            form.title.data = tour.title
+            form.price.data = tour.price
+            form.duration.data = tour.duration
+            form.content.data = tour.content
+            form.free_pl.data = tour.free_pl
+            form.category.data = tour.category_id
+            form.is_published.data = tour.is_published
+            form.img.data = tour.img
+        else:
+            abort(404)
+
+    if form.validate_on_submit():
+        tour = db_sess.query(Tours).filter(Tours.id == id_).first()
+        if tour and current_user.user_type_id == 1:  # Только админ может редактировать
+            tour.title = form.title.data
+            tour.price = form.price.data
+            tour.duration = form.duration.data
+            tour.content = form.content.data
+            tour.free_pl = form.free_pl.data
+            tour.category_id = form.category.data
+            tour.is_published = form.is_published.data
+            tour.img = form.img.data
+            db_sess.commit()
+            return redirect('/all_tour')
+        else:
+            abort(404)
+
+    return render_template('tours_red.html',
+                           title='Редактирование тура', form=form)
+
+    # db_sess = db_session.create_session()
+    # tours = db_sess.query(Tours).filter(Tours.id == id)
+    # return render_template('tour\id.html',
+    #                        title='Список всех туров', tours=tours)
 @app.route('/tours/active/hiking')
 def active_hiking():
     return render_template('all_tour.html', category='Походы')
@@ -134,7 +223,7 @@ def active_excursions():
 
 @app.route('/tours/bus_tour')
 def bus_tour():
-    return render_template('bus_tour.html')
+    return render_template('bus_tours.html')
 
 @app.route('/about')
 def about():

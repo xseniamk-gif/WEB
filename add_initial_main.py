@@ -2,7 +2,6 @@ from data import db_session
 from data.tours import Tours, Category
 from data.users import Users, UsersTypes
 
-
 def add_users_types(db_sess):
     """
     Создаем типы пользователей
@@ -81,7 +80,7 @@ def add_tours(db_sess):
     db_sess.query(Tours).delete()
 
     raw = [
-        ("Паломнический тур в Дивеево",
+        (3, "Паломнический тур в Дивеево",
          """
 <h2>О туре</h2>
 <p>Дивеево — одно из самых почитаемых православных мест России. Здесь находится Свято-Троицкий Серафимо-Дивеевский монастырь, где покоятся мощи преподобного Серафима Саровского.</p>
@@ -92,12 +91,14 @@ def add_tours(db_sess):
 <h2>Стоимость</h2>
 <p>12 500 рублей с человека.</p>
 """,
-         4,  # category_id (Паломничество)
+         True,
+         35,
          3,  # duration
          12500,  # price
          'дивеево.jpg'
          ),
-        ("Горный Алтай",
+        (0,  # Походы,
+         "Горный Алтай",
          """
 <h2>О туре</h2>
 <p>Путешествие по живописным горам Алтая. Вас ждут невероятные пейзажи, горные озера и чистый воздух.</p>
@@ -108,8 +109,9 @@ def add_tours(db_sess):
 <h2>Стоимость</h2>
 <p>45 000 рублей с человека.</p>
 """,
-         1,  # Походы
-         7,
+         True,
+         30,
+         7,  # duration
          45000,
          'алтай.jpg'
          ),
@@ -117,14 +119,15 @@ def add_tours(db_sess):
 
     for line in raw:
         tour = Tours(
-            title=line[0],
-            content=line[1],
-            category_id=line[2],
-            duration=line[3],
-            price=line[4],
-            is_published=True,
+            title=line[1],
+            content=line[2],
+            category_id=line[0],
+            duration=line[5],
+            price=line[6],
+            is_published=line[3],
+            free_pl=line[4],
             user_id=1,
-            img=line[5]# Администратор
+            img=line[7]# Администратор
         )
         db_sess.add(tour)
     db_sess.commit()

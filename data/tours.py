@@ -24,23 +24,26 @@ class Tours(SqlAlchemyBase, SerializerMixin):
                            primary_key=True, autoincrement=True)
     category_id = sqlalchemy.Column(sqlalchemy.Integer,
                                     sqlalchemy.ForeignKey("category.id"))
-    user_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                sqlalchemy.ForeignKey("users.id"),
-                                nullable=True)
     title = sqlalchemy.Column(sqlalchemy.String,
                               nullable=True)
     content = sqlalchemy.Column(sqlalchemy.TEXT,
                                 nullable=True)
     is_published = sqlalchemy.Column(sqlalchemy.Boolean,
                                      default=True)
+    free_pl = sqlalchemy.Column(sqlalchemy.Integer)
     duration = sqlalchemy.Column(sqlalchemy.Integer, default=3)
     price = sqlalchemy.Column(sqlalchemy.Integer, default=10000)
     img = sqlalchemy.Column(sqlalchemy.String,
-                              nullable=False)
+                            nullable=False)
+
+    # Внешний ключ на таблицу users (добавьте это поле)
+    user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
 
     # Связи
     category = orm.relationship("Category", back_populates='tours')
-    author = orm.relationship("Users", foreign_keys=[user_id], backref='created_tours')  # Изменено с user на author
+
+    # Исправленная связь с пользователем
+    author = orm.relationship("Users", foreign_keys=[user_id], backref='created_tours')
 
     def __repr__(self):
         return f"***\n<class={__class__.__name__}>\n" \
