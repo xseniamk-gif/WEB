@@ -10,7 +10,7 @@ from forms.editprofile import EditProfileForm
 from forms.loginform import LoginForm
 from forms.registerform import RegisterForm
 from forms.toursforms import ToursForm
-
+# summernote
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 
@@ -86,14 +86,14 @@ def logout():
     return redirect("/")
 
 
-@app.route('/profile')
-def profile():
+@app.route('/edit_profile')
+def edit_profile():
     form = EditProfileForm()
     db_sess = db_session.create_session()
 
 
     if request.method == "GET":
-
+        tour = db_sess.query(Users).filter(Users.id == id_).first()
         if tour:
             form.title.data = tour.title
             form.price.data = tour.price
