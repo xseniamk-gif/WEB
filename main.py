@@ -4,12 +4,13 @@ from flask_wtf.csrf import CSRFProtect
 
 from data import db_session
 from data.tours import Tours, Category
-from data.users import Users, UsersTypes
-from forms.editprofile import EditProfileForm
+from data.users import Users, UsersTypes, CartItem
+from forms.editprofile import UsersForm
 
 from forms.loginform import LoginForm
 from forms.registerform import RegisterForm
 from forms.toursforms import ToursForm
+
 # summernote
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -20,7 +21,6 @@ csrf = CSRFProtect(app)
 # Инициализация LoginManager
 login_manager = LoginManager()
 login_manager.init_app(app)
-
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -38,7 +38,6 @@ def main_first():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
-    print(current_user)
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
             return render_template('register.html', title='Регистрация',
@@ -51,6 +50,7 @@ def register():
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="Пользователь с такой почтой уже есть")
+
 
         # Проверка на существующий логин
         if db_sess.query(Users).filter(Users.login == form.login.data).first():
@@ -86,45 +86,6 @@ def logout():
     return redirect("/")
 
 
-@app.route('/edit_profile')
-def edit_profile():
-    form = EditProfileForm()
-    db_sess = db_session.create_session()
-
-
-    if request.method == "GET":
-        tour = db_sess.query(Users).filter(Users.id == id_).first()
-        if tour:
-            form.title.data = tour.title
-            form.price.data = tour.price
-            form.duration.data = tour.duration
-            form.content.data = tour.content
-            form.free_pl.data = tour.free_pl
-            form.category.data = tour.category_id
-            form.is_published.data = tour.is_published
-            form.img.data = tour.img
-        else:
-            abort(404)
-
-    if form.validate_on_submit():
-        tour = db_sess.query(Tours).filter(Tours.id == id_).first()
-        if tour and current_user.user_type_id == 1:  # Только админ может редактировать
-            tour.title = form.title.data
-            tour.price = form.price.data
-            tour.duration = form.duration.data
-            tour.content = form.content.data
-            tour.free_pl = form.free_pl.data
-            tour.category_id = form.category.data
-            tour.is_published = form.is_published.data
-            tour.img = form.img.data
-            db_sess.commit()
-            return redirect('/all_tour')
-        else:
-            abort(404)
-
-    return render_template('login.html', title='Профиль', form=form)
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -145,6 +106,48 @@ def contacts():
     return render_template('contacts.html',
                            title='Контактная информация')
 
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    form = UsersForm()
+    db_sess = db_session.create_session()
+
+    if form.validate_on_submit():
+        user = db_sess.query(Users).filter(Users.id == current_user.id).first()
+        if user:
+            user.name = form.name.data
+            user.surname = form.surname.data
+            user.email = form.email.data
+            user.number = form.number.data
+            user.about = form.about.data
+            db_sess.commit()
+            return redirect('/profile')
+
+    # Заполняем форму текущими данными
+    form.name.data = current_user.name
+    form.surname.data = current_user.surname
+    form.email.data = current_user.email
+    form.number.data = current_user.number
+    form.about.data = current_user.about
+
+    # ПРАВИЛЬНО получаем туры из корзины
+    cart_items = db_sess.query(CartItem).filter(CartItem.user_id == current_user.id).all()
+    tours_in_cart = []
+    for item in cart_items:
+        tour = db_sess.query(Tours).filter(Tours.id == item.tour_id).first()
+        if tour:
+            tours_in_cart.append(tour)
+
+    return render_template('profile.html',
+                           title='Профиль пользователя',
+                           form=form,
+                           user=current_user,
+                           tours=tours_in_cart)  # Передаем tours, а не tour
+
+
+
+
 @app.route('/all_tour')
 @app.route('/tours/active')
 def all_tour():
@@ -155,7 +158,6 @@ def all_tour():
 
 #
 @app.route('/tour/<int:id_>', methods=['GET', 'POST'])
-@login_required
 def tours_edit(id_):
     form = ToursForm()
     db_sess = db_session.create_session()
@@ -197,10 +199,24 @@ def tours_edit(id_):
     return render_template('tours_red.html',
                            title='Редактирование тура', form=form)
 
-    # db_sess = db_session.create_session()
-    # tours = db_sess.query(Tours).filter(Tours.id == id)
-    # return render_template('tour\id.html',
-    #                        title='Список всех туров', tours=tours)
+@app.route('/tour', methods=['GET', 'POST'])
+def tours_add():
+    form = ToursForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        tour = Tours()
+        tour.title = form.title.data
+        tour.price = form.price.data
+        tour.duration = form.duration.data
+        tour.content = form.content.data
+        tour.free_pl = form.free_pl.data
+        tour.category_id = form.category.data
+        tour.is_published = form.is_published.data
+        tour.img = form.img.data
+        db_sess.commit()
+        return redirect('/')
+    return render_template('tours_red.html', title='Добавление тура',
+                           form=form)
 @app.route('/tours/active/hiking')
 def active_hiking():
     return render_template('all_tour.html', category='Походы')
@@ -230,6 +246,32 @@ def about():
     return render_template('about.html',
                            title='О проекте')
 
+@app.route('/add_tours',  methods=['GET', 'POST'])
+@login_required
+def add_news():
+    form = NewsForm()
+    db_sess = db_session.create_session()
+    categories = db_sess.query(Category).all()
+    category = [(i.id, i.name) for i in db_sess.query(Category).all()]
+    form.category.choices = category
+    if form.validate_on_submit():
+        news = News()
+        news.title = form.title.data
+        # news.content = form.content.data
+        logging.warning(form)
+        # news.content = form.content.data
+        news.content = request.form.get('content')
+        news.is_published = form.is_published.data
+        news.category_id = form.category.data
+        current_user.news.append(news)
+        # мы изменили текущего пользователя с помощью метода merge
+        db_sess.merge(current_user)
+        db_sess.commit()
+        return redirect('/')
+    return render_template('news.html',
+                           title='Добавление новости',
+                           form=form,
+                           category=categories)
 #
 # @app.errorhandler(CSRFError)
 # def csrf_error(reason):

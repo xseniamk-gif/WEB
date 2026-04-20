@@ -1,88 +1,170 @@
 {% extends "base.html" %}
 
+{% block body %}
+<body class="hold-transition sidebar-mini">
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3>{{ title }}</h3>
+
+{% if current_user.is_authenticated and current_user.user_type_id == 1 %}
+
+<!-- general form elements -->
+<div class="card card-primary">
+    <div class="card-header">
+        <h3 class="card-title">{{ title }}</h3>
+    </div>
+    <!-- form start -->
+    <form class="form-horizontal" method="post" action="" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        {% if message %}
+        <div class="alert alert-danger">{{ message }}</div>
+        {% endif %}
+
+        <div class="card-body">
+            <!-- Название тура -->
+            <div class="form-group">
+                <label for="title">
+                    {{ form.title.label }}
+                </label>
+                {{ form.title(class="form-control", type="form-title", id="title", placeholder="Введите название тура") }}
+                {% for error in form.title.errors %}
+                <p class="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
+                {% endfor %}
+            </div>
+
+            <!-- Цена и длительность в одной строке -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="price">
+                            {{ form.price.label }}
+                        </label>
+                        {{ form.price(class="form-control", type="number", id="price", placeholder="Цена в рублях") }}
+                        {% for error in form.price.errors %}
+                        <p class="alert alert-danger" role="alert">
+                            {{ error }}
+                        </p>
+                        {% endfor %}
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form action="" method="post">
-                        {{ form.hidden_tag() }}
-
-                        {% if message %}
-                            <div class="alert alert-danger">{{ message }}</div>
-                        {% endif %}
-
-                        <div class="mb-3">
-                            {{ form.title.label(class="form-label") }}
-                            {{ form.title(class="form-control") }}
-                            {% for error in form.title.errors %}
-                                <div class="alert alert-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form.price.label(class="form-label") }}
-                            {{ form.price(class="form-control") }}
-                            {% for error in form.price.errors %}
-                                <div class="alert alert-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form.duration.label(class="form-label") }}
-                            {{ form.duration(class="form-control") }}
-                            {% for error in form.duration.errors %}
-                                <div class="alert alert-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form.free_pl.label(class="form-label") }}
-                            {{ form.free_pl(class="form-control") }}
-                            {% for error in form.free_pl.errors %}
-                                <div class="alert alert-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form.category.label(class="form-label") }}
-                            {{ form.category(class="form-select") }}
-                            {% for error in form.category.errors %}
-                                <div class="alert alert-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form.content.label(class="form-label") }}
-                            {{ form.content(class="form-control", rows=10) }}
-                            {% for error in form.content.errors %}
-                                <div class="alert alert-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form.img.label(class="form-label") }}
-                            {{ form.img(class="form-control") }}
-                            {% for error in form.img.errors %}
-                                <div class="alert alert-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            {{ form.is_published(class="form-check-input") }}
-                            {{ form.is_published.label(class="form-check-label") }}
-                        </div>
-
-                        {{ form.submit(class="btn btn-primary") }}
-                        <a href="/all_tour" class="btn btn-secondary">Отмена</a>
-                    </form>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="duration">
+                            {{ form.duration.label }}
+                        </label>
+                        {{ form.duration(class="form-control", id="duration", placeholder="Например: 7 дней / 6 ночей") }}
+                        {% for error in form.duration.errors %}
+                        <p class="alert alert-danger" role="alert">
+                            {{ error }}
+                        </p>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
+
+            <!-- Свободные места и категория -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="free_pl">
+                            {{ form.free_pl.label }}
+                        </label>
+                        {{ form.free_pl(class="form-control", type="number", id="free_pl", placeholder="Количество свободных мест") }}
+                        {% for error in form.free_pl.errors %}
+                        <p class="alert alert-danger" role="alert">
+                            {{ error }}
+                        </p>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="category">
+                            {{ form.category.label }}
+                        </label>
+                        {{ form.category(class="form-control", id="category") }}
+                        {% for error in form.category.errors %}
+                        <p class="alert alert-danger" role="alert">
+                            {{ error }}
+                        </p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Описание тура (Summernote) -->
+            <div class="form-group">
+                <label for="summernote">
+                    {{ form.content.label }}
+                </label>
+                <textarea id="summernote" name="content">
+                    {{ form.content.data }}
+                </textarea>
+            </div>
+
+            <!-- Загрузка изображения с устройства -->
+            <div class="form-group">
+                <label>Изображение тура</label>
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="file" id="tourImage" name="tour_image" class="form-control" accept="image/*">
+                        <small class="text-muted">Загрузите изображение с компьютера (JPG, PNG, GIF)</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="img">{{ form.img.label }}</label>
+                        {{ form.img(class="form-control", id="img", placeholder="Или введите URL изображения") }}
+                        <small class="text-muted">Или укажите ссылку на изображение</small>
+                    </div>
+                </div>
+
+                <!-- Превью изображения -->
+                <div id="imagePreview" style="display: none; margin-top: 15px;">
+                    <label>Превью:</label><br>
+                    <img id="previewImg" src="" alt="Превью" style="max-width: 300px; max-height: 200px; border: 1px solid #ddd; border-radius: 5px; padding: 5px;">
+                </div>
+
+                {% for error in form.img.errors %}
+                <p class="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
+                {% endfor %}
+            </div>
+
+            <!-- Чекбокс публикации -->
+            <div class="form-check">
+                {{ form.is_published(class="form-check-input") }}
+                <label class="form-check-label">{{ form.is_published.label }}</label>
+            </div>
         </div>
-    </div>
+
+        <div class="card-footer">
+            {{ form.submit(type="submit", class="btn btn-outline-success btn-sm") }}
+            <a href="/all_tour" class="btn btn-outline-info btn-sm">Закрыть</a>
+        </div>
+    </form>
 </div>
+
+<!-- Подключение Summernote и скриптов -->
+<script src="{{ url_for('static', filename='plugins/jquery/jquery.slim.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='plugins/summernote/summernote-bs4.min.css') }}">
+<script src="{{ url_for('static', filename='plugins/summernote/summernote-bs4.min.js') }}"></script>
+
+{% else %}
+    <div class="alert alert-danger">
+        У вас нет доступа к этой странице
+    </div>
+{% endif %}
+<script>
+    $(document).ready(function() {
+        $('#summernote').summernote({
+            placeholder: 'Введите описание тура...',
+            tabsize: 2,
+            height: 300,
+            lang: 'ru-RU'
+        });
+    });
+</script>
 {% endblock %}

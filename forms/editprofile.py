@@ -5,7 +5,7 @@ from wtforms.fields.simple import EmailField, TextAreaField
 from wtforms.validators import DataRequired, Length
 
 
-class EditProfileForm(FlaskForm):
+class UsersForm(FlaskForm):
     email = EmailField('Почта', validators=[DataRequired()])
     surname = StringField('Фамилия пользователя', validators=[DataRequired()])
     name = StringField('Имя пользователя', validators=[DataRequired()])

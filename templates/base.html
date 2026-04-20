@@ -233,7 +233,7 @@
           <li class="nav-item">
             {% if current_user.is_authenticated %}
 
-              <a class="btn-logout btn-custom" href="/profile">{{ current_user.name }}</a>
+              <a class="btn-logout btn-custom" href="/profile">Профиль</a>
             {% else %}
               <div class="auth-buttons">
                 <a class="btn-register btn-custom" href="/register">Зарегистрироваться</a>
@@ -250,7 +250,6 @@
   <main>
     {% block content %}{% endblock %}
   </main>
-
   <!-- Контакты (общие для всех страниц) -->
   <div class="container">
     <div class="contacts">

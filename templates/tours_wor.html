@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block body %}
+<body class="hold-transition sidebar-mini">
+
+<!-- Summernote -->
+<script src="{{ url_for('static', filename='plugins/jquery/jquery.slim.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<!-- Summernote -->
+<link rel="stylesheet" href="{{ url_for('static', filename='plugins/summernote/summernote-bs4.min.css') }}">
+<script src="{{ url_for('static', filename='plugins/summernote/summernote-bs4.min.js') }}"></script>
+
+{% endblock %}
+
+
+{% block content %}
+
+
+{% if current_user.is_authenticated and current_user.user_type_id == 1 %}
+
+
+<!-- general form elements -->
+<div class="card card-primary">
+    <div class="card-header">
+      <h3 class="card-title">Текст новости поддерживает html теги</h3>
+    </div>
+  <!-- form start -->
+  <form class="form-horizontal" method="post" action="">
+    {{ form.hidden_tag() }}
+    {% if message %}
+    <div class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+
+    <div class="card-body">
+      <div class="form-group">
+        <label for="title">
+          {{ form.title.label }}
+        </label>
+          {{ form.title(class="form-control", type="form-title", id="title",
+          placeholder="Enter News title") }}
+          {% for error in form.title.errors %}
+          <p class="alert alert-danger" role="alert">
+              {{ error }}
+          </p>
+          {% endfor %}
+      </div>
+
+
+      <div class='form-group'>
+        <label for='summernote'>
+          {{form.content.label}}
+        </label>
+        <textarea id="summernote" name="content" class='form-control'>
+          {{form.content.data}}
+        </textarea>
+        <script>
+          $('#summernote').summernote({
+            placeholder: 'Enter some content here.',
+            tabsize: 2,
+            height: 100
+          });
+        </script>
+      </div>
+
+
+      <div class="form-group">
+        <label for="category">
+          {{ form.category.label }}
+        </label>
+        {{ form.category(class="form-control", type="form-category", id="category",
+        placeholder="Choice category") }}
+        {% for error in form.category.errors %}
+        <p class="alert alert-danger" role="alert">
+          {{ error }}
+        </p>
+        {% endfor %}
+      </div>
+
+      <div class="form-check">
+        {{ form.is_published() }}
+        <label class="form-check-label">{{ form.is_published.label }}</label>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      {{ form.submit(type="submit", class="btn btn-outline-success btn-sm") }}
+      <button type="submit" href="../" class="btn btn-outline-info btn-sm">Закрыть</button>
+    </div>
+  </form>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

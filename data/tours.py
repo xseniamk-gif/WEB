@@ -1,5 +1,4 @@
 import datetime
-
 import sqlalchemy
 from sqlalchemy import orm
 from sqlalchemy_serializer import SerializerMixin
@@ -36,13 +35,13 @@ class Tours(SqlAlchemyBase, SerializerMixin):
     img = sqlalchemy.Column(sqlalchemy.String,
                             nullable=False)
 
-    # Внешний ключ на таблицу users (добавьте это поле)
+    # Внешний ключ на таблицу users
     user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
 
     # Связи
     category = orm.relationship("Category", back_populates='tours')
-
-    # Исправленная связь с пользователем
+    # ИСПРАВЛЕНО: back_populates должен указывать на 'tour' (единственное число)
+    cart_items = orm.relationship('CartItem', back_populates='tour', cascade='all, delete-orphan')
     author = orm.relationship("Users", foreign_keys=[user_id], backref='created_tours')
 
     def __repr__(self):

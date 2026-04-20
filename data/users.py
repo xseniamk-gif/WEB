@@ -1,3 +1,4 @@
+
 import datetime
 import sqlalchemy
 from sqlalchemy import orm
@@ -22,6 +23,7 @@ class Users(SqlAlchemyBase, UserMixin, SerializerMixin):
     created_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
     user_type_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users_types.id"))
 
+    cart_items = orm.relationship('CartItem', back_populates='user', cascade='all, delete-orphan')
     user_type = orm.relationship('UsersTypes')
 
     def set_password(self, password):
@@ -29,6 +31,21 @@ class Users(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     def check_password(self, password):
         return check_password_hash(self.hashed_password, password)
+
+
+
+class CartItem(SqlAlchemyBase, SerializerMixin):
+    __tablename__ = 'cart_items'
+
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
+    user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'), nullable=False)
+    tour_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('tours.id'), nullable=False)
+    quantity = sqlalchemy.Column(sqlalchemy.Integer, default=1)
+    added_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
+
+    # ИСПРАВЛЕНО: Используем правильные имена
+    user = orm.relationship('Users', back_populates='cart_items')
+    tour = orm.relationship('Tours', back_populates='cart_items')  # Было 'tours', стало 'tour'
 
 
 class UsersTypes(SqlAlchemyBase, SerializerMixin):
