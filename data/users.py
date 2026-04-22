@@ -24,7 +24,7 @@ class Users(SqlAlchemyBase, UserMixin, SerializerMixin):
     user_type_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users_types.id"))
 
     cart_items = orm.relationship('CartItem', back_populates='user', cascade='all, delete-orphan')
-    user_type = orm.relationship('UsersTypes')
+    user_type_rel = orm.relationship('UsersTypes', back_populates='users')
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
@@ -54,4 +54,4 @@ class UsersTypes(SqlAlchemyBase, SerializerMixin):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     users_type = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
-    users = orm.relationship("Users", backref='type')
+    users = orm.relationship('Users', back_populates='user_type_rel')

@@ -87,6 +87,7 @@ def add_category(db_sess):
     print("Добавлены категории")
 
 
+
 def add_tours(db_sess):
     """
     для теста создаем туры (описание без HTML)
@@ -191,7 +192,7 @@ def add_tours(db_sess):
          20,
          7,
          38000,
-         'biketour.jpg'
+         'busicle.jpg'
          ),
         (3,  # Сплавы
          "Сплав по реке Белой",
@@ -223,7 +224,7 @@ def add_tours(db_sess):
          15,
          5,
          18000,
-         'rafting.jpg'
+         'splav_white.jpeg'
          ),
         (5,  # Экскурсии
          "Обзорная экскурсия по Санкт-Петербургу",
@@ -262,15 +263,15 @@ def add_tours(db_sess):
 
     for line in raw:
         tour = Tours(
-            title=line[1],
-            content=line[2],
-            category_id=line[0],
-            duration=line[5],
-            price=line[6],
-            is_published=line[3],
-            free_pl=line[4],
-            user_id=1,  # Администратор
-            img=line[7]
+            category_id=line[0],   # category_id
+            title=line[1],         # title
+            content=line[2],       # content
+            is_published=line[3],  # is_published
+            free_pl=line[4],       # free_pl
+            duration=line[5],      # duration
+            price=line[6],         # price
+            img=line[7],           # img
+            user_id=1              # user_id (обязательное поле!)
         )
         db_sess.add(tour)
     db_sess.commit()

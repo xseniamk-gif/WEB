@@ -1,15 +1,13 @@
 {% extends "base.html" %}
 
 {% block body %}
-<body class="hold-transition sidebar-mini">
+<script type="text/javascript" src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" />
+    <script type="text/javascript" src="cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Summernote -->
-<script src="{{ url_for('static', filename='plugins/jquery/jquery.slim.min.js') }}"></script>
-<script src="{{ url_for('static', filename='plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<!-- Summernote -->
-<link rel="stylesheet" href="{{ url_for('static', filename='plugins/summernote/summernote-bs4.min.css') }}">
-<script src="{{ url_for('static', filename='plugins/summernote/summernote-bs4.min.js') }}"></script>
-
+    <!-- include summernote css/js-->
+    <link href="summernote-bs5.css" rel="stylesheet">
+    <script src="summernote-bs5.js"></script>
 {% endblock %}
 
 
@@ -22,7 +20,7 @@
 <!-- general form elements -->
 <div class="card card-primary">
     <div class="card-header">
-      <h3 class="card-title">Текст новости поддерживает html теги</h3>
+      <h3 class="card-title">Текст тура поддерживает html теги</h3>
     </div>
   <!-- form start -->
   <form class="form-horizontal" method="post" action="">
@@ -39,6 +37,42 @@
           {{ form.title(class="form-control", type="form-title", id="title",
           placeholder="Enter News title") }}
           {% for error in form.title.errors %}
+          <p class="alert alert-danger" role="alert">
+              {{ error }}
+          </p>
+          {% endfor %}
+      </div>
+      <div class="form-group">
+        <label for="price">
+          {{ form.price.label }}
+        </label>
+          {{ form.price(class="form-control", type="form-price", id="price",
+          placeholder="Enter Tour price") }}
+          {% for error in form.price.errors %}
+          <p class="alert alert-danger" role="alert">
+              {{ error }}
+          </p>
+          {% endfor %}
+      </div>
+      <div class="form-group">
+        <label for="duration">
+          {{ form.duration.label }}
+        </label>
+          {{ form.duration(class="form-control", type="form-duration", id="duration",
+          placeholder="Enter Tour title") }}
+          {% for error in form.duration.errors %}
+          <p class="alert alert-danger" role="alert">
+              {{ error }}
+          </p>
+          {% endfor %}
+      </div>
+      <div class="form-group">
+        <label for="free_pl">
+          {{ form.free_pl.label }}
+        </label>
+          {{ form.free_pl(class="form-control", type="form-free_pl", id="free_pl",
+          placeholder="Enter Tour free_pl") }}
+          {% for error in form.free_pl.errors %}
           <p class="alert alert-danger" role="alert">
               {{ error }}
           </p>

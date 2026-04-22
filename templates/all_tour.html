@@ -7,7 +7,7 @@
   {% if tours %}
   <div class="row row-cols-1 row-cols-md-3 g-4">
     {% for tour in tours %}
-    {% if not category or category == tour.category.name %}
+    {% if not current_category or current_category == tour.category.name %}
     <div class="col">
       <div class="card h-100 shadow-sm">
         {% if tour.img %}

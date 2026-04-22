@@ -131,7 +131,6 @@ def profile():
     form.number.data = current_user.number
     form.about.data = current_user.about
 
-    # ПРАВИЛЬНО получаем туры из корзины
     cart_items = db_sess.query(CartItem).filter(CartItem.user_id == current_user.id).all()
     tours_in_cart = []
     for item in cart_items:
@@ -143,18 +142,83 @@ def profile():
                            title='Профиль пользователя',
                            form=form,
                            user=current_user,
-                           tours=tours_in_cart)  # Передаем tours, а не tour
+                           tours=tours_in_cart)
 
 
 
 
 @app.route('/all_tour')
-@app.route('/tours/active')
 def all_tour():
     db_sess = db_session.create_session()
     tours = db_sess.query(Tours).all()
     return render_template('all_tour.html',
-                           title='Список всех туров', tours=tours)
+                           title='Список всех туров',
+                           tours=tours)
+
+@app.route('/tours/active/hiking')
+def active_hiking():
+    db_sess = db_session.create_session()
+    category = db_sess.query(Category).filter(Category.name == 'Походы').first()
+    if category:
+        tours = db_sess.query(Tours).filter(Tours.category_id == category.id).all()
+    else:
+        tours = []
+    return render_template('all_tour.html',
+                           title='Походы',
+                           tours=tours,
+                           current_category='Походы')
+
+@app.route('/tours/active/biking')
+def active_biking():
+    db_sess = db_session.create_session()
+    category = db_sess.query(Category).filter(Category.name == 'Велопрогулки').first()
+    if category:
+        tours = db_sess.query(Tours).filter(Tours.category_id == category.id).all()
+    else:
+        tours = []
+    return render_template('all_tour.html',
+                           title='Велопрогулки',
+                           tours=tours,
+                           current_category='Велопрогулки')
+
+@app.route('/tours/active/rafting')
+def active_rafting():
+    db_sess = db_session.create_session()
+    category = db_sess.query(Category).filter(Category.name == 'Сплавы').first()
+    if category:
+        tours = db_sess.query(Tours).filter(Tours.category_id == category.id).all()
+    else:
+        tours = []
+    return render_template('all_tour.html',
+                           title='Сплавы',
+                           tours=tours,
+                           current_category='Сплавы')
+
+@app.route('/tours/active/pilgrimage')
+def active_pilgrimage():
+    db_sess = db_session.create_session()
+    category = db_sess.query(Category).filter(Category.name == 'Паломничество').first()
+    if category:
+        tours = db_sess.query(Tours).filter(Tours.category_id == category.id).all()
+    else:
+        tours = []
+    return render_template('all_tour.html',
+                           title='Паломничество',
+                           tours=tours,
+                           current_category='Паломничество')
+
+@app.route('/tours/active/excursions')
+def active_excursions():
+    db_sess = db_session.create_session()
+    category = db_sess.query(Category).filter(Category.name == 'Экскурсии').first()
+    if category:
+        tours = db_sess.query(Tours).filter(Tours.category_id == category.id).all()
+    else:
+        tours = []
+    return render_template('all_tour.html',
+                           title='Экскурсии',
+                           tours=tours,
+                           current_category='Экскурсии')
 
 #
 @app.route('/tour/<int:id_>', methods=['GET', 'POST'])
@@ -217,62 +281,7 @@ def tours_add():
         return redirect('/')
     return render_template('tours_red.html', title='Добавление тура',
                            form=form)
-@app.route('/tours/active/hiking')
-def active_hiking():
-    return render_template('all_tour.html', category='Походы')
 
-@app.route('/tours/active/biking')
-def active_biking():
-    return render_template('all_tour.html', category='Велопрогулки')
-
-@app.route('/tours/active/rafting')
-def active_rafting():
-    return render_template('all_tour.html', category='Сплавы')
-
-@app.route('/tours/active/pilgrimage')
-def active_pilgrimage():
-    return render_template('all_tour.html', category='Паломничество')
-
-@app.route('/tours/active/excursions')
-def active_excursions():
-    return render_template('all_tour.html', category='Экскурсии')
-
-@app.route('/tours/bus_tour')
-def bus_tour():
-    return render_template('bus_tours.html')
-
-@app.route('/about')
-def about():
-    return render_template('about.html',
-                           title='О проекте')
-
-@app.route('/add_tours',  methods=['GET', 'POST'])
-@login_required
-def add_news():
-    form = NewsForm()
-    db_sess = db_session.create_session()
-    categories = db_sess.query(Category).all()
-    category = [(i.id, i.name) for i in db_sess.query(Category).all()]
-    form.category.choices = category
-    if form.validate_on_submit():
-        news = News()
-        news.title = form.title.data
-        # news.content = form.content.data
-        logging.warning(form)
-        # news.content = form.content.data
-        news.content = request.form.get('content')
-        news.is_published = form.is_published.data
-        news.category_id = form.category.data
-        current_user.news.append(news)
-        # мы изменили текущего пользователя с помощью метода merge
-        db_sess.merge(current_user)
-        db_sess.commit()
-        return redirect('/')
-    return render_template('news.html',
-                           title='Добавление новости',
-                           form=form,
-                           category=categories)
-#
 # @app.errorhandler(CSRFError)
 # def csrf_error(reason):
 #     return render_template('error.html', reason=reason)
