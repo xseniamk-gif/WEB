@@ -43,7 +43,6 @@ class CartItem(SqlAlchemyBase, SerializerMixin):
     quantity = sqlalchemy.Column(sqlalchemy.Integer, default=1)
     added_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
 
-    # ИСПРАВЛЕНО: Используем правильные имена
     user = orm.relationship('Users', back_populates='cart_items')
     tour = orm.relationship('Tours', back_populates='cart_items')  # Было 'tours', стало 'tour'
 

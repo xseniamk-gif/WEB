@@ -137,23 +137,38 @@ def profile():
         tour = db_sess.query(Tours).filter(Tours.id == item.tour_id).first()
         if tour:
             tours_in_cart.append(tour)
-
     return render_template('profile.html',
                            title='Профиль пользователя',
                            form=form,
                            user=current_user,
                            tours=tours_in_cart)
 
+@app.route('/tour/inf/<int:id_>', methods=['GET', 'POST'])
+def tours_detail(id_):
+    db_sess = db_session.create_session()
+    tour = db_sess.query(Tours).filter(Tours.id == id_).first()
 
-
-
+    return render_template('tours_wor.html',
+                           title='Детали тура', tour=tour)
+@app.route('/tours/active')
 @app.route('/all_tour')
 def all_tour():
     db_sess = db_session.create_session()
     tours = db_sess.query(Tours).all()
+    cart_items = db_sess.query(CartItem).filter(CartItem.user_id == current_user).all()
+    tours_in_cart = []
+    for item in cart_items:
+        tour = db_sess.query(Tours).filter(Tours.id == item.tour_id).first()
+        if tour:
+            tours_in_cart.append(tour)
+    print(f"Найдено туров: {len(tours)}")
+    for tour in tours:
+        print(f"Тур: {tour.title}, Категория ID: {tour.category_id}")
+    # Отладка - выводим в консоль
+
     return render_template('all_tour.html',
                            title='Список всех туров',
-                           tours=tours)
+                           tours=tours, tours_in_cart=tours_in_cart)
 
 @app.route('/tours/active/hiking')
 def active_hiking():
@@ -263,25 +278,46 @@ def tours_edit(id_):
     return render_template('tours_red.html',
                            title='Редактирование тура', form=form)
 
+
 @app.route('/tour', methods=['GET', 'POST'])
+@login_required
 def tours_add():
     form = ToursForm()
-    if form.validate_on_submit():
-        db_sess = db_session.create_session()
-        tour = Tours()
-        tour.title = form.title.data
-        tour.price = form.price.data
-        tour.duration = form.duration.data
-        tour.content = form.content.data
-        tour.free_pl = form.free_pl.data
-        tour.category_id = form.category.data
-        tour.is_published = form.is_published.data
-        tour.img = form.img.data
-        db_sess.commit()
-        return redirect('/')
-    return render_template('tours_red.html', title='Добавление тура',
-                           form=form)
+    db_sess = db_session.create_session()
 
+    # Заполняем choices для категорий
+    categories = db_sess.query(Category).all()
+    form.category.choices = [(c.id, c.name) for c in categories]
+
+    if form.validate_on_submit():
+        try:
+            tour = Tours()
+            tour.title = form.title.data
+            tour.price = form.price.data
+            tour.duration = form.duration.data
+            tour.content = form.content.data
+            tour.free_pl = form.free_pl.data
+            tour.category_id = form.category.data
+            tour.is_published = form.is_published.data
+            tour.img = form.img.data if form.img.data else 'default.jpg'
+            tour.user_id = current_user.id  # ВАЖНО: добавляем user_id
+
+            db_sess.add(tour)
+            db_sess.commit()
+
+            print(f"Тур успешно добавлен: {tour.title}")
+            return redirect('/all_tour')
+
+        except Exception as e:
+            print(f"Ошибка при добавлении тура: {e}")
+            db_sess.rollback()
+            return render_template('tours_red.html',
+                                   title='Добавление тура',
+                                   form=form,
+                                   message=f"Ошибка: {str(e)}")
+
+    # Для GET запроса или если форма не прошла валидацию
+    return render_template('tours_red.html', title='Добавление тура', form=form)
 # @app.errorhandler(CSRFError)
 # def csrf_error(reason):
 #     return render_template('error.html', reason=reason)
