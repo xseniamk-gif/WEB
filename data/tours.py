@@ -40,7 +40,7 @@ class Tours(SqlAlchemyBase, SerializerMixin):
 
     # Связи
     category = orm.relationship("Category", back_populates='tours')
-    # ИСПРАВЛЕНО: back_populates должен указывать на 'tour' (единственное число)
+
     cart_items = orm.relationship('CartItem', back_populates='tour', cascade='all, delete-orphan')
     author = orm.relationship("Users", foreign_keys=[user_id], backref='created_tours')
 

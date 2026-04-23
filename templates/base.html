@@ -207,13 +207,24 @@
       <div class="collapse navbar-collapse" id="navbarNavDropdown">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
+            {% if active_bus %}
+              <a class="nav-link active text-white" aria-current="page" href="/tours/bus_tour"><u>Автобусные поездки</u></a>
+            {% else %}
             <a class="nav-link active text-white" aria-current="page" href="/tours/bus_tour">Автобусные поездки</a>
+            {% endif %}
           </li>
 
           <li class="nav-item dropdown">
+            {% if active %}
+              <a class="nav-link dropdown-toggle text-white" href="/tours/active" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <u>Активный отдых
+            </u></a>
+            {% else %}
             <a class="nav-link dropdown-toggle text-white" href="/tours/active" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               Активный отдых
             </a>
+            {% endif %}
+
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="/tours/active">Все активные туры</a></li>
               <li><hr class="dropdown-divider"></li>
@@ -225,7 +236,12 @@
             </ul>
           </li>
           <li class="nav-item">
+            {% if active_cont %}
+              <a class="nav-link text-white" href="/contacts"><u>Контакты</u></a>
+            {% else %}
             <a class="nav-link text-white" href="/contacts">Контакты</a>
+            {% endif %}
+
           </li>
           <li class="nav-item">
             <a class="nav-link text-white" href="#">+7 923 834-34-56</a>

@@ -33,7 +33,10 @@ def load_user(user_id):
 def main_first():
     return render_template("main_first.html",
                            title="Главная страница")
-
+@app.route("/tours/bus_tour")
+def bus_tour():
+    return render_template("bus_tours.html",
+                           title="Главная страница", active_bus=True)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -104,7 +107,7 @@ def login():
 @app.route('/contacts')
 def contacts():
     return render_template('contacts.html',
-                           title='Контактная информация')
+                           title='Контактная информация', active_cont=True)
 
 
 @app.route('/profile', methods=['GET', 'POST'])
@@ -155,12 +158,12 @@ def tours_detail(id_):
 def all_tour():
     db_sess = db_session.create_session()
     tours = db_sess.query(Tours).all()
-    cart_items = db_sess.query(CartItem).filter(CartItem.user_id == current_user).all()
-    tours_in_cart = []
-    for item in cart_items:
-        tour = db_sess.query(Tours).filter(Tours.id == item.tour_id).first()
-        if tour:
-            tours_in_cart.append(tour)
+    # cart_items = db_sess.query(CartItem).filter(CartItem.user_id == current_user).all()
+    # tours_in_cart = []
+    # for item in cart_items:
+    #     tour = db_sess.query(Tours).filter(Tours.id == item.tour_id).first()
+    #     if tour:
+    #         tours_in_cart.append(tour)
     print(f"Найдено туров: {len(tours)}")
     for tour in tours:
         print(f"Тур: {tour.title}, Категория ID: {tour.category_id}")
@@ -168,7 +171,8 @@ def all_tour():
 
     return render_template('all_tour.html',
                            title='Список всех туров',
-                           tours=tours, tours_in_cart=tours_in_cart)
+                           tours=tours, active=True)
+#  tours_in_cart=tours_in_cart,
 
 @app.route('/tours/active/hiking')
 def active_hiking():
@@ -181,7 +185,7 @@ def active_hiking():
     return render_template('all_tour.html',
                            title='Походы',
                            tours=tours,
-                           current_category='Походы')
+                           current_category='Походы', active=True)
 
 @app.route('/tours/active/biking')
 def active_biking():
@@ -194,7 +198,7 @@ def active_biking():
     return render_template('all_tour.html',
                            title='Велопрогулки',
                            tours=tours,
-                           current_category='Велопрогулки')
+                           current_category='Велопрогулки', active=True)
 
 @app.route('/tours/active/rafting')
 def active_rafting():
@@ -207,7 +211,7 @@ def active_rafting():
     return render_template('all_tour.html',
                            title='Сплавы',
                            tours=tours,
-                           current_category='Сплавы')
+                           current_category='Сплавы', active=True)
 
 @app.route('/tours/active/pilgrimage')
 def active_pilgrimage():
@@ -220,7 +224,7 @@ def active_pilgrimage():
     return render_template('all_tour.html',
                            title='Паломничество',
                            tours=tours,
-                           current_category='Паломничество')
+                           current_category='Паломничество', active=True)
 
 @app.route('/tours/active/excursions')
 def active_excursions():
