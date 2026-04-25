@@ -160,43 +160,25 @@
                                 </div>
                             </form>
                         </div>
-
-                        <!-- Вкладка корзины -->
-                        <div class="tab-pane fade" id="basket" role="tabpanel">
-                            <h5>Мои туры</h5>
-                            {% if tours %}
-                            <div class="row row-cols-1 row-cols-md-2 g-4">
-                                {% for tour in tours %}
-                                <div class="col">
-                                    <div class="card h-100 shadow-sm">
-                                        {% if tour.img %}
-                                        <img src="{{ url_for('static', filename='img/' + tour.img) }}" class="card-img-top" alt="{{ tour.title }}" style="height: 150px; object-fit: cover;">
-                                        {% else %}
-                                        <img src="https://via.placeholder.com/300x150?text=Нет+фото" class="card-img-top" alt="Нет изображения" style="height: 150px; object-fit: cover;">
-                                        {% endif %}
+                            <!-- Вкладка корзины-->
+                            <div class="tab-pane fade" id="basket" role="tabpanel">
+                                <h5>Мои туры в корзине</h5>
+                                {% if tours_in_cart is defined and tours_in_cart %}
+                                    {% for tour in tours_in_cart %}
+                                    <div class="card mb-2">
                                         <div class="card-body">
-                                            <h5 class="card-title">{{ tour.title }}</h5>
-                                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                                <span class="text-primary fw-bold">{{ tour.price }} ₽</span>
-                                                <span class="text-muted">{{ tour.duration }} дней</span>
-                                            </div>
-                                        </div>
-                                        <div class="card-footer bg-transparent">
-                                            <a href="/tour/{{ tour.id }}" class="btn btn-primary w-100">
-                                                <i class="bi bi-eye"></i> Подробнее
-                                            </a>
+                                            <strong>{{ tour.title }}</strong> - {{ tour.price }} ₽
+                                            <a href="/tour/inf/{{ tour.id }}" class="btn btn-sm btn-primary float-end">Подробнее</a>
                                         </div>
                                     </div>
-                                </div>
-                                {% endfor %}
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        В корзине пока нет туров.
+                                        <a href="/all_tour">Перейти к выбору туров</a>
+                                    </div>
+                                {% endif %}
                             </div>
-                            {% else %}
-                            <div class="alert alert-info">
-                                В вашей корзине пока нет туров.
-                                <a href="/all_tour">Перейти к выбору туров</a>
-                            </div>
-                            {% endif %}
-                        </div>
 
                         <!-- Админ-панель (только для администраторов) -->
                         {% if current_user.user_type_id == 1 %}

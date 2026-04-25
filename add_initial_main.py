@@ -1,6 +1,6 @@
 from data import db_session
 from data.tours import Tours, Category
-from data.users import Users, UsersTypes
+from data.users import Users, UsersTypes, CartItem
 
 
 def add_users_types(db_sess):
@@ -85,6 +85,35 @@ def add_category(db_sess):
     db_sess.commit()
 
     print("Добавлены категории")
+
+def add_cart_items(db_sess):
+    """
+    Добавляем тестовые товары в корзину
+    """
+    db_sess.query(CartItem).delete()
+
+    user = db_sess.query(Users).filter(Users.login == 'user').first()
+    if not user:
+        return
+
+    tours = db_sess.query(Tours).all()
+    if not tours:
+        return
+
+    cart_items_data = [
+        (user.id, tours[0].id, 1),
+        (user.id, tours[2].id, 2),
+    ]
+
+    for user_id, tour_id, quantity in cart_items_data:
+        cart_item = CartItem(
+            user_id=user_id,
+            tour_id=tour_id,
+            quantity=quantity
+        )
+        db_sess.add(cart_item)
+
+    db_sess.commit()
 
 
 

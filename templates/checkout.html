@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="margin-top: 80px; max-width: 500px;">
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">Оформление заказа</h4>
+        </div>
+        <div class="card-body">
+            <h5>Сумма к оплате: {{ total_price }} ₽</h5>
+
+            <form method="POST">
+                <div class="mb-3">
+                    <label>Ваше имя</label>
+                    <input type="text" class="form-control" value="{{ user.name }}" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label>Email</label>
+                    <input type="email" class="form-control" value="{{ user.email }}" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label>Способ оплаты</label>
+                    <select class="form-control" name="payment" required>
+                        <option value="card">Банковская карта</option>
+                        <option value="cash">Наличными</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100">
+                    Оплатить {{ total_price }} ₽
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

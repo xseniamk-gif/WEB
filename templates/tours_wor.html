@@ -40,12 +40,9 @@
             <span class="badge bg-secondary">{{ tour.category.name }}</span>
           </div>
           {% endif %}
-            {% if is_bask %}
-            {% else %}
-                <button class="btn btn-primary" id="cartBtn">
-                  <i class="bi bi-cart"></i> Корзина
-                </button>
-            {% endif %}
+  <form action="{{ url_for('add_to_cart', tour_id=tour.id) }}" method="POST">
+    <button type="submit" class="btn btn-primary">В корзину</button>
+</form>
         </div>
       </div>
     </div>

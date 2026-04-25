@@ -22,7 +22,19 @@ class Users(SqlAlchemyBase, UserMixin, SerializerMixin):
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     created_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
     user_type_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users_types.id"))
+    # image_path = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    # image_data = sqlalchemy.Column(sqlalchemy.BLOB)
+    # rating = sqlalchemy.Column(sqlalchemy.Float, default=0.00)
 
+    # def calculate_rating(self):
+    #     if not self.comments:
+    #         self.rating = 0.00
+    #         return
+    #
+    #     total_rating = sum(comment.rate for comment in self.comments)
+    #     self.rating = float(total_rating) / len(self.comments)
+
+    # comments = orm.relationship('Comment', back_populates='product')
     cart_items = orm.relationship('CartItem', back_populates='user', cascade='all, delete-orphan')
     user_type_rel = orm.relationship('UsersTypes', back_populates='users')
 

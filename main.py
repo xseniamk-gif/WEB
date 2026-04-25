@@ -127,24 +127,27 @@ def profile():
             db_sess.commit()
             return redirect('/profile')
 
-    # Заполняем форму текущими данными
     form.name.data = current_user.name
     form.surname.data = current_user.surname
     form.email.data = current_user.email
     form.number.data = current_user.number
     form.about.data = current_user.about
 
+    # ТОВАРЫ ИЗ КОРЗИНЫ
     cart_items = db_sess.query(CartItem).filter(CartItem.user_id == current_user.id).all()
     tours_in_cart = []
     for item in cart_items:
         tour = db_sess.query(Tours).filter(Tours.id == item.tour_id).first()
         if tour:
             tours_in_cart.append(tour)
+
     return render_template('profile.html',
                            title='Профиль пользователя',
                            form=form,
                            user=current_user,
-                           tours=tours_in_cart)
+                           tours_in_cart=tours_in_cart)
+
+
 
 @app.route('/tour/inf/<int:id_>', methods=['GET', 'POST'])
 def tours_detail(id_):
@@ -153,27 +156,177 @@ def tours_detail(id_):
 
     return render_template('tours_wor.html',
                            title='Детали тура', tour=tour)
+
+
+@app.route('/add_to_cart/<int:tour_id>', methods=['POST'])
+@login_required
+def add_to_cart(tour_id):
+    db_sess = db_session.create_session()
+
+    cart_item = db_sess.query(CartItem).filter(
+        CartItem.user_id == current_user.id,
+        CartItem.tour_id == tour_id
+    ).first()
+
+    if cart_item:
+        cart_item.quantity += 1
+    else:
+        cart_item = CartItem(
+            user_id=current_user.id,
+            tour_id=tour_id,
+            quantity=1
+        )
+        db_sess.add(cart_item)
+
+    db_sess.commit()
+    return redirect(request.referrer or '/profile')
+
+@app.route('/remove_from_cart/<int:cart_item_id>', methods=['POST'])
+@login_required
+def remove_from_cart(cart_item_id):
+    """Удаление товара из корзины"""
+    db_sess = db_session.create_session()
+
+    cart_item = db_sess.query(CartItem).filter(
+        CartItem.id == cart_item_id,
+        CartItem.user_id == current_user.id
+    ).first()
+
+    if cart_item:
+        db_sess.delete(cart_item)
+        db_sess.commit()
+
+    return redirect('/cart')
+
+
+@app.route('/update_cart/<int:cart_item_id>', methods=['POST'])
+@login_required
+def update_cart(cart_item_id):
+    """Обновление количества товара в корзине"""
+    db_sess = db_session.create_session()
+
+    cart_item = db_sess.query(CartItem).filter(
+        CartItem.id == cart_item_id,
+        CartItem.user_id == current_user.id
+    ).first()
+
+    if cart_item:
+        quantity = request.form.get('quantity', type=int)
+        if quantity and quantity > 0:
+            cart_item.quantity = quantity
+        else:
+            db_sess.delete(cart_item)
+        db_sess.commit()
+
+    return redirect('/cart')
+
+
+# @app.route('/cart')
+# @login_required
+# def view_cart():
+#     """Просмотр корзины"""
+#     db_sess = db_session.create_session()
+#
+#     # Получаем все товары в корзине пользователя
+#     cart_items = db_sess.query(CartItem).filter(
+#         CartItem.user_id == current_user.id
+#     ).all()
+#
+#     # Формируем список с деталями туров
+#     cart_details = []
+#     total_price = 0
+#
+#     for item in cart_items:
+#         tour = db_sess.query(Tours).filter(Tours.id == item.tour_id).first()
+#         if tour:
+#             item_total = tour.price * item.quantity
+#             total_price += item_total
+#             cart_details.append({
+#                 'cart_item': item,
+#                 'tour': tour,
+#                 'total': item_total
+#             })
+#
+#     return render_template('cart.html',
+#                            title='Корзина',
+#                            cart_details=cart_details,
+#                            total_price=total_price)
+
+
+# @app.route('/clear_cart', methods=['POST'])
+# @login_required
+# def clear_cart():
+#     """Очистка всей корзины"""
+#     db_sess = db_session.create_session()
+#
+#     cart_items = db_sess.query(CartItem).filter(
+#         CartItem.user_id == current_user.id
+#     ).all()
+#
+#     for item in cart_items:
+#         db_sess.delete(item)
+#
+#     db_sess.commit()
+#
+#     return redirect('/cart')
+
+
+@app.route('/checkout', methods=['GET', 'POST'])
+@login_required
+def checkout():
+    """Оформление заказа"""
+    db_sess = db_session.create_session()
+
+    cart_items = db_sess.query(CartItem).filter(
+        CartItem.user_id == current_user.id
+    ).all()
+
+    if not cart_items:
+        return redirect('/cart')
+
+    if request.method == 'POST':
+
+        # Очищаем
+        for item in cart_items:
+            db_sess.delete(item)
+        db_sess.commit()
+
+        return render_template('checkout_success.html',
+                               title='Заказ оформлен')
+
+    # Подсчет итоговой суммы
+    total_price = 0
+    for item in cart_items:
+        tour = db_sess.query(Tours).filter(Tours.id == item.tour_id).first()
+        if tour:
+            total_price += tour.price * item.quantity
+
+    return render_template('checkout.html',
+                           title='Оформление заказа',
+                           cart_items=cart_items,
+                           total_price=total_price,
+                           user=current_user)
+
+
 @app.route('/tours/active')
 @app.route('/all_tour')
 def all_tour():
     db_sess = db_session.create_session()
     tours = db_sess.query(Tours).all()
-    # cart_items = db_sess.query(CartItem).filter(CartItem.user_id == current_user).all()
-    # tours_in_cart = []
-    # for item in cart_items:
-    #     tour = db_sess.query(Tours).filter(Tours.id == item.tour_id).first()
-    #     if tour:
-    #         tours_in_cart.append(tour)
-    print(f"Найдено туров: {len(tours)}")
-    for tour in tours:
-        print(f"Тур: {tour.title}, Категория ID: {tour.category_id}")
-    # Отладка - выводим в консоль
+
+    # Получаем товары в корзине для авторизованного пользователя
+    tours_in_cart_ids = []
+    if current_user.is_authenticated:
+        cart_items = db_sess.query(CartItem).filter(
+            CartItem.user_id == current_user.id
+        ).all()
+        tours_in_cart_ids = [item.tour_id for item in cart_items]
 
     return render_template('all_tour.html',
                            title='Список всех туров',
-                           tours=tours, active=True)
-#  tours_in_cart=tours_in_cart,
-
+                           tours=tours,
+                           active=True,
+                           tours_in_cart_ids=tours_in_cart_ids)
 @app.route('/tours/active/hiking')
 def active_hiking():
     db_sess = db_session.create_session()
