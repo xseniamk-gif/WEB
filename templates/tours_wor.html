@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
+<!--<style>-->
+<!--    .button {-->
+<!--  margin-top: 10px; /* отступ сверху */-->
+<!--  margin-bottom: 10px; /* отступ снизу */-->
+<!--}-->
+<!--</style>-->
 <div class="container my-5">
   <h2 class="text-center mb-4">{{ title if title else 'Наши туры' }}</h2>
 
@@ -40,6 +46,12 @@
             <span class="badge bg-secondary">{{ tour.category.name }}</span>
           </div>
           {% endif %}
+            {% if is_bask %}
+            {% else %}
+                <button class="btn btn-primary" id="cartBtn">
+                  <i class="bi bi-cart"></i> Корзина
+                </button>
+            {% endif %}
         </div>
       </div>
     </div>
