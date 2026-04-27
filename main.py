@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, abort
+from flask import Flask, render_template, redirect, request, abort, url_for
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_wtf.csrf import CSRFProtect
 
@@ -22,6 +22,7 @@ csrf = CSRFProtect(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+
 @login_manager.user_loader
 def load_user(user_id):
     """функция для получения пользователя"""
@@ -33,10 +34,13 @@ def load_user(user_id):
 def main_first():
     return render_template("main_first.html",
                            title="Главная страница")
+
+
 @app.route("/tours/bus_tour")
 def bus_tour():
     return render_template("bus_tours.html",
                            title="Главная страница", active_bus=True)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -53,7 +57,6 @@ def register():
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="Пользователь с такой почтой уже есть")
-
 
         # Проверка на существующий логин
         if db_sess.query(Users).filter(Users.login == form.login.data).first():
@@ -148,14 +151,33 @@ def profile():
                            tours_in_cart=tours_in_cart)
 
 
-
 @app.route('/tour/inf/<int:id_>', methods=['GET', 'POST'])
 def tours_detail(id_):
     db_sess = db_session.create_session()
     tour = db_sess.query(Tours).filter(Tours.id == id_).first()
 
+    # Получаем информацию о корзине текущего пользователя
+    cart_quantity = 0
+    tours_in_cart_ids = []
+
+    if current_user.is_authenticated:
+        cart_items = db_sess.query(CartItem).filter(
+            CartItem.user_id == current_user.id
+        ).all()
+        tours_in_cart_ids = [item.tour_id for item in cart_items]
+
+        # Находим количество конкретного тура в корзине
+        for item in cart_items:
+            if item.tour_id == id_:
+                cart_quantity = item.quantity
+                break
+
     return render_template('tours_wor.html',
-                           title='Детали тура', tour=tour)
+                           title='Детали тура',
+                           tour=tour,
+                           tours_in_cart_ids=tours_in_cart_ids,
+                           cart_quantity=cart_quantity
+                           )
 
 
 @app.route('/add_to_cart/<int:tour_id>', methods=['POST'])
@@ -179,24 +201,44 @@ def add_to_cart(tour_id):
         db_sess.add(cart_item)
 
     db_sess.commit()
-    return redirect(request.referrer or '/profile')
+    return redirect(request.referrer or url_for('all_tour'))
 
-@app.route('/remove_from_cart/<int:cart_item_id>', methods=['POST'])
+
+@app.route('/remove_from_cart/<int:tour_id>', methods=['POST'])
 @login_required
-def remove_from_cart(cart_item_id):
-    """Удаление товара из корзины"""
+def remove_from_cart(tour_id):
+    """Удаление конкретного тура из корзины"""
     db_sess = db_session.create_session()
 
     cart_item = db_sess.query(CartItem).filter(
-        CartItem.id == cart_item_id,
-        CartItem.user_id == current_user.id
+        CartItem.user_id == current_user.id,
+        CartItem.tour_id == tour_id
     ).first()
 
     if cart_item:
         db_sess.delete(cart_item)
         db_sess.commit()
 
-    return redirect('/cart')
+    return redirect(request.referrer or url_for('profile'))
+
+@app.route('/decrease_cart/<int:tour_id>', methods=['POST'])
+@login_required
+def decrease_cart(tour_id):
+    db_sess = db_session.create_session()
+
+    cart_item = db_sess.query(CartItem).filter(
+        CartItem.user_id == current_user.id,
+        CartItem.tour_id == tour_id
+    ).first()
+
+    if cart_item:
+        if cart_item.quantity > 1:
+            cart_item.quantity -= 1
+        else:
+            db_sess.delete(cart_item)
+        db_sess.commit()
+
+    return redirect(request.referrer or url_for('all_tour'))
 
 
 @app.route('/update_cart/<int:cart_item_id>', methods=['POST'])
@@ -221,54 +263,24 @@ def update_cart(cart_item_id):
     return redirect('/cart')
 
 
-# @app.route('/cart')
-# @login_required
-# def view_cart():
-#     """Просмотр корзины"""
-#     db_sess = db_session.create_session()
-#
-#     # Получаем все товары в корзине пользователя
-#     cart_items = db_sess.query(CartItem).filter(
-#         CartItem.user_id == current_user.id
-#     ).all()
-#
-#     # Формируем список с деталями туров
-#     cart_details = []
-#     total_price = 0
-#
-#     for item in cart_items:
-#         tour = db_sess.query(Tours).filter(Tours.id == item.tour_id).first()
-#         if tour:
-#             item_total = tour.price * item.quantity
-#             total_price += item_total
-#             cart_details.append({
-#                 'cart_item': item,
-#                 'tour': tour,
-#                 'total': item_total
-#             })
-#
-#     return render_template('cart.html',
-#                            title='Корзина',
-#                            cart_details=cart_details,
-#                            total_price=total_price)
+@app.route('/clear_cart', methods=['POST'])
+@login_required
+def clear_cart():
+    """Очистка всей корзины"""
+    db_sess = db_session.create_session()
 
+    # Находим все товары пользователя
+    cart_items = db_sess.query(CartItem).filter(
+        CartItem.user_id == current_user.id
+    ).all()
 
-# @app.route('/clear_cart', methods=['POST'])
-# @login_required
-# def clear_cart():
-#     """Очистка всей корзины"""
-#     db_sess = db_session.create_session()
-#
-#     cart_items = db_sess.query(CartItem).filter(
-#         CartItem.user_id == current_user.id
-#     ).all()
-#
-#     for item in cart_items:
-#         db_sess.delete(item)
-#
-#     db_sess.commit()
-#
-#     return redirect('/cart')
+    # Удаляем каждый товар
+    for item in cart_items:
+        db_sess.delete(item)
+
+    db_sess.commit()
+
+    return redirect(request.referrer or url_for('profile'))
 
 
 @app.route('/checkout', methods=['GET', 'POST'])
@@ -327,6 +339,8 @@ def all_tour():
                            tours=tours,
                            active=True,
                            tours_in_cart_ids=tours_in_cart_ids)
+
+
 @app.route('/tours/active/hiking')
 def active_hiking():
     db_sess = db_session.create_session()
@@ -339,6 +353,7 @@ def active_hiking():
                            title='Походы',
                            tours=tours,
                            current_category='Походы', active=True)
+
 
 @app.route('/tours/active/biking')
 def active_biking():
@@ -353,6 +368,7 @@ def active_biking():
                            tours=tours,
                            current_category='Велопрогулки', active=True)
 
+
 @app.route('/tours/active/rafting')
 def active_rafting():
     db_sess = db_session.create_session()
@@ -365,6 +381,7 @@ def active_rafting():
                            title='Сплавы',
                            tours=tours,
                            current_category='Сплавы', active=True)
+
 
 @app.route('/tours/active/pilgrimage')
 def active_pilgrimage():
@@ -379,6 +396,7 @@ def active_pilgrimage():
                            tours=tours,
                            current_category='Паломничество', active=True)
 
+
 @app.route('/tours/active/excursions')
 def active_excursions():
     db_sess = db_session.create_session()
@@ -391,6 +409,7 @@ def active_excursions():
                            title='Экскурсии',
                            tours=tours,
                            current_category='Экскурсии')
+
 
 #
 @app.route('/tour/<int:id_>', methods=['GET', 'POST'])
@@ -475,6 +494,8 @@ def tours_add():
 
     # Для GET запроса или если форма не прошла валидацию
     return render_template('tours_red.html', title='Добавление тура', form=form)
+
+
 # @app.errorhandler(CSRFError)
 # def csrf_error(reason):
 #     return render_template('error.html', reason=reason)

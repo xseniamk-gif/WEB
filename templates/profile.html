@@ -169,9 +169,19 @@
                                         <div class="card-body">
                                             <strong>{{ tour.title }}</strong> - {{ tour.price }} ₽
                                             <a href="/tour/inf/{{ tour.id }}" class="btn btn-sm btn-primary float-end">Подробнее</a>
+                                            <form action="/remove_from_cart/{{ tour.id }}" method="POST" style="display: inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+                                            </form>
                                         </div>
+
                                     </div>
                                     {% endfor %}
+                                <form action="{{ url_for('clear_cart') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger w-100 mt-2">Очистить всю корзину</button>
+                    </form>
+
                                 {% else %}
                                     <div class="alert alert-info">
                                         В корзине пока нет туров.

@@ -5,48 +5,86 @@
   <h2 class="text-center mb-4">{{ title if title else 'Наши туры' }}</h2>
 
   {% if tour %}
-  <div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="company-card p-4 p-lg-5">
-                <div class="text-center mb-4">
-                    <i class="bi bi-suit-heart-fill fs-1 text-primary"></i>
-                </div>
-
-<div class="row row-cols-1 row-cols-md-3 g-4">
-    {% if not current_category or current_category == tour.category.name %}
-        {% if tour.img %}
-        <img src="{{ url_for('static', filename='img/' + tour.img) }}" class="card-img-top" alt="{{ tour.title }}" style="height: 200px; object-fit: cover;">
-        {% else %}
-        <img src="https://via.placeholder.com/300x200?text=Нет+фото" class="card-img-top" alt="Нет изображения" style="height: 200px; object-fit: cover;">
-        {% endif %}
-        <div class="card-body">
-          <h5 class="card-title">{{ tour.title }}</h5>
-          <div class="card-text">
-            {% if tour.content %}
-              {{ tour.content }}
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="company-card p-4 p-lg-5">
+        <div class="row">
+          <div class="col-md-6">
+            {% if tour.img %}
+            <img src="{{ url_for('static', filename='img/' + tour.img) }}"
+                 class="img-fluid rounded"
+                 alt="{{ tour.title }}"
+                 style="width: 100%; height: 300px; object-fit: cover;">
             {% else %}
-              <p class="text-muted">Описание временно недоступно</p>
+            <img src="https://via.placeholder.com/500x300?text=Нет+фото"
+                 class="img-fluid rounded"
+                 alt="Нет изображения">
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <h3 class="mb-3">{{ tour.title }}</h3>
+
+            <div class="card-text mb-4">
+              {% if tour.content %}
+                {{ tour.content | safe }}
+              {% else %}
+                <p class="text-muted">Описание временно недоступно</p>
+              {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <span class="text-primary fw-bold fs-4">{{ tour.price }} ₽</span>
+              <span class="text-muted">
+                <i class="bi bi-calendar"></i> {{ tour.duration }} дней
+              </span>
+            </div>
+
+            {% if tour.category %}
+            <div class="mt-2 mb-3">
+              <span class="badge bg-secondary">{{ tour.category.name }}</span>
+            </div>
             {% endif %}
 
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center mt-3">
-            <span class="text-primary fw-bold fs-4">{{ tour.price }} ₽</span>
-            <span class="text-muted"><i class="bi bi-calendar"></i> {{ tour.duration }} дней</span>
-          </div>
-          {% if tour.category %}
-          <div class="mt-2">
-            <span class="badge bg-secondary">{{ tour.category.name }}</span>
-          </div>
-          {% endif %}
-  <form action="{{ url_for('add_to_cart', tour_id=tour.id) }}" method="POST">
-    <button type="submit" class="btn btn-primary">В корзину</button>
+            {% if current_user.is_authenticated and tour.id in tours_in_cart_ids %}
+              <!-- Тур уже в корзине - показываем количество -->
+              <div class="card mt-3 p-3 bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="text-success fw-bold">✓ В корзине</span>
+                    <span class="badge bg-primary ms-2">{{ cart_quantity }} шт.</span>
+                  </div>
+                  <div class="btn-group">
+                    <form action="{{ url_for('add_to_cart', tour_id=tour.id) }}" method="POST" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-plus"></i> 1
+                      </button>
+                    </form>
+                    <form action="{{ url_for('decrease_cart', tour_id=tour.id) }}" method="POST" class="d-inline">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="btn btn-sm btn-danger">
+    <i class="bi bi-dash"></i> 1
+  </button>
 </form>
+                  </div>
+                </div>
+                  <a href="{{ url_for('profile') }}" class="btn btn-outline-primary btn-sm w-100">
+                    Перейти в корзину
+                  </a>
+              </div>
+            {% else %}
+              <form action="{{ url_for('add_to_cart', tour_id=tour.id) }}" method="POST" class="mt-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-primary w-100">
+                  🛒 В корзину
+                </button>
+              </form>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>
-    {% endif %}
   </div>
   {% else %}
   <div class="alert alert-info text-center">
@@ -57,11 +95,4 @@
   </div>
   {% endif %}
 </div>
-
-            </div>
-        </div>
-    </div>
-</div>
-
-
 {% endblock %}
