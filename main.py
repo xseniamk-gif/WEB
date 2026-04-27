@@ -1,6 +1,11 @@
-from flask import Flask, render_template, redirect, request, abort, url_for
+import os
+from datetime import datetime
+
+from flask import jsonify
+from flask import Flask, render_template, redirect, request, abort, url_for, send_from_directory
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_wtf.csrf import CSRFProtect
+from werkzeug.utils import secure_filename
 
 from data import db_session
 from data.tours import Tours, Category
@@ -11,12 +16,23 @@ from forms.loginform import LoginForm
 from forms.registerform import RegisterForm
 from forms.toursforms import ToursForm
 
-# summernote
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 
+# ДОБАВЬТЕ ЭТИ НАСТРОЙКИ
+UPLOAD_FOLDER = os.path.join('static', 'img')  # Папка для загрузки фото
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB
+
+# Создаём папку если её нет
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 # защита форм
 csrf = CSRFProtect(app)
+
 
 # Инициализация LoginManager
 login_manager = LoginManager()
@@ -136,7 +152,6 @@ def profile():
     form.number.data = current_user.number
     form.about.data = current_user.about
 
-    # ТОВАРЫ ИЗ КОРЗИНЫ
     cart_items = db_sess.query(CartItem).filter(CartItem.user_id == current_user.id).all()
     tours_in_cart = []
     for item in cart_items:
@@ -185,22 +200,29 @@ def tours_detail(id_):
 def add_to_cart(tour_id):
     db_sess = db_session.create_session()
 
+    tour = db_sess.query(Tours).filter(Tours.id == tour_id).first()
+    if not tour:
+        return redirect(request.referrer or url_for('all_tour'))
+
     cart_item = db_sess.query(CartItem).filter(
         CartItem.user_id == current_user.id,
         CartItem.tour_id == tour_id
     ).first()
 
-    if cart_item:
-        cart_item.quantity += 1
-    else:
-        cart_item = CartItem(
-            user_id=current_user.id,
-            tour_id=tour_id,
-            quantity=1
-        )
-        db_sess.add(cart_item)
+    current_quantity = cart_item.quantity if cart_item else 0
 
-    db_sess.commit()
+    if tour.free_pl > current_quantity:
+        if cart_item:
+            cart_item.quantity += 1
+        else:
+            cart_item = CartItem(
+                user_id=current_user.id,
+                tour_id=tour_id,
+                quantity=1
+            )
+            db_sess.add(cart_item)
+        db_sess.commit()
+
     return redirect(request.referrer or url_for('all_tour'))
 
 
@@ -220,6 +242,7 @@ def remove_from_cart(tour_id):
         db_sess.commit()
 
     return redirect(request.referrer or url_for('profile'))
+
 
 @app.route('/decrease_cart/<int:tour_id>', methods=['POST'])
 @login_required
@@ -288,6 +311,9 @@ def clear_cart():
 def checkout():
     """Оформление заказа"""
     db_sess = db_session.create_session()
+    tours_names = []
+    total_price = 0
+    error = None  # Добавьте переменную error
 
     cart_items = db_sess.query(CartItem).filter(
         CartItem.user_id == current_user.id
@@ -297,8 +323,21 @@ def checkout():
         return redirect('/cart')
 
     if request.method == 'POST':
+        for item in cart_items:
+            tour = db_sess.query(Tours).filter(Tours.id == item.tour_id).first()
+            if tour:
+                if tour.free_pl >= item.quantity:
+                    tour.free_pl -= item.quantity
+                else:
+                    error = f"Недостаточно мест на тур '{tour.title}'. Доступно: {tour.free_pl}"
+                    return render_template('checkout.html',
+                                           title='Оформление заказа',
+                                           cart_items=cart_items,
+                                           total_price=total_price,
+                                           user=current_user,
+                                           tours_names=tours_names,
+                                           error=error)
 
-        # Очищаем
         for item in cart_items:
             db_sess.delete(item)
         db_sess.commit()
@@ -306,18 +345,19 @@ def checkout():
         return render_template('checkout_success.html',
                                title='Заказ оформлен')
 
-    # Подсчет итоговой суммы
-    total_price = 0
     for item in cart_items:
         tour = db_sess.query(Tours).filter(Tours.id == item.tour_id).first()
         if tour:
             total_price += tour.price * item.quantity
+            tours_names.append([tour.title, tour.price, item.quantity, tour.free_pl])  # Добавили free_pl
 
     return render_template('checkout.html',
                            title='Оформление заказа',
                            cart_items=cart_items,
                            total_price=total_price,
-                           user=current_user)
+                           user=current_user,
+                           tours_names=tours_names,
+                           error=error)
 
 
 @app.route('/tours/active')
@@ -411,7 +451,6 @@ def active_excursions():
                            current_category='Экскурсии')
 
 
-#
 @app.route('/tour/<int:id_>', methods=['GET', 'POST'])
 def tours_edit(id_):
     form = ToursForm()
@@ -431,7 +470,6 @@ def tours_edit(id_):
             form.free_pl.data = tour.free_pl
             form.category.data = tour.category_id
             form.is_published.data = tour.is_published
-            form.img.data = tour.img
         else:
             abort(404)
 
@@ -445,7 +483,26 @@ def tours_edit(id_):
             tour.free_pl = form.free_pl.data
             tour.category_id = form.category.data
             tour.is_published = form.is_published.data
-            tour.img = form.img.data
+
+            # ПРАВИЛЬНАЯ ОБРАБОТКА ФАЙЛА
+            if form.img.data and form.img.data.filename:  # Проверяем, что файл выбран
+                file = form.img.data
+                if allowed_file(file.filename):
+                    # Удаляем старое фото если оно не default.jpg
+                    if tour.img and tour.img != 'default.jpg':
+                        old_file = os.path.join(app.config['UPLOAD_FOLDER'], tour.img)
+                        if os.path.exists(old_file):
+                            os.remove(old_file)
+
+                    filename = secure_filename(file.filename)
+                    name, ext = os.path.splitext(filename)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    new_filename = f"{name}_{timestamp}{ext}"
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+                    file.save(file_path)
+                    tour.img = new_filename
+                    print(f"Фото сохранено: {new_filename}")
+
             db_sess.commit()
             return redirect('/all_tour')
         else:
@@ -454,6 +511,8 @@ def tours_edit(id_):
     return render_template('tours_red.html',
                            title='Редактирование тура', form=form)
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/tour', methods=['GET', 'POST'])
 @login_required
@@ -475,9 +534,19 @@ def tours_add():
             tour.free_pl = form.free_pl.data
             tour.category_id = form.category.data
             tour.is_published = form.is_published.data
-            tour.img = form.img.data if form.img.data else 'default.jpg'
-            tour.user_id = current_user.id  # ВАЖНО: добавляем user_id
 
+            tour.user_id = current_user.id  # ВАЖНО: добавляем user_id
+            if form.img.data and allowed_file(form.img.data.filename):
+                file = form.img.data
+                filename = secure_filename(file.filename)
+                # Добавляем timestamp для уникальности
+                name, ext = os.path.splitext(filename)
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"{name}_{timestamp}{ext}"
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                tour.img = filename
+            else:
+                tour.img = 'default.jpg'
             db_sess.add(tour)
             db_sess.commit()
 
@@ -520,6 +589,26 @@ def tours_add():
 #     return render_template('error.html',
 #                            title='Доступ запрещен',
 #                            reason='Авторизуйтесь чтобы получить доступ.')
+
+
+
+
+
+@app.route('/api/tours')
+def api_tours():
+    db_sess = db_session.create_session()
+    tours = db_sess.query(Tours).all()
+    data = [{'id': t.id, 'title': t.title, 'price': t.price} for t in tours]
+    return jsonify(data)
+
+
+@app.route('/api/tours/<int:tour_id>')
+def api_tour(tour_id):
+    db_sess = db_session.create_session()
+    tour = db_sess.query(Tours).get(tour_id)
+    if not tour:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'id': tour.id, 'title': tour.title, 'price': tour.price})
 
 
 def main():

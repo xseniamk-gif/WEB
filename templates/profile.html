@@ -177,10 +177,13 @@
 
                                     </div>
                                     {% endfor %}
-                                <form action="{{ url_for('clear_cart') }}" method="POST">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="btn btn-danger w-100 mt-2">Очистить всю корзину</button>
-                    </form>
+                                        <a href="/checkout" class="btn btn-primary w-100">
+                                                <i class="bi bi-eye"></i> Перейти к оплате
+                                              </a>
+                                        <form action="{{ url_for('clear_cart') }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-danger w-100 mt-2">Очистить всю корзину</button>
+                                        </form>
 
                                 {% else %}
                                     <div class="alert alert-info">

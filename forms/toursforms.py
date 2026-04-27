@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, TextAreaField, SubmitField, IntegerField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Optional
 
@@ -10,5 +11,7 @@ class ToursForm(FlaskForm):
     free_pl = IntegerField('Свободных мест', validators=[DataRequired()])
     category = SelectField('Категория', coerce=int, validators=[DataRequired()])
     is_published = BooleanField('Опубликован')
-    img = StringField('Название файла изображения')
+    img = FileField('Изображение', validators=[
+        FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'webp'], 'Только изображения!')
+    ])
     submit = SubmitField('Сохранить')

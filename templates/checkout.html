@@ -7,9 +7,30 @@
             <h4 class="mb-0">Оформление заказа</h4>
         </div>
         <div class="card-body">
+            {% if error %}
+                <div class="alert alert-danger">
+                    <strong>Ошибка!</strong> {{ error }}
+                </div>
+            {% endif %}
+
+            <h5>Ваши туры:</h5>
+            {% for item in tours_names %}
+                <div class="mb-2">
+                    <strong>Тур: {{ item[0] }}</strong><br>
+                    Количество: {{ item[2] }}<br>
+                    Цена за шт: {{ item[1] }} ₽<br>
+                    <strong>Итого: {{ item[1] * item[2] }} ₽</strong><br>
+                    <small class="text-muted">Доступно мест: {{ item[3] }}</small>
+                </div>
+
+            {% endfor %}
+
+            <hr>
             <h5>Сумма к оплате: {{ total_price }} ₽</h5>
 
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                 <div class="mb-3">
                     <label>Ваше имя</label>
                     <input type="text" class="form-control" value="{{ user.name }}" readonly>

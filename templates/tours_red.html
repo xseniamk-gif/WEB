@@ -105,27 +105,28 @@
                 {% endfor %}
             </div>
 
-            <!-- Загрузка изображения с устройства -->
             <div class="form-group">
-                <label>Изображение тура</label>
-                <div class="row">
-                    <div class="col-md-6">
-                        <input type="file" id="tourImage" name="tour_image" class="form-control" accept="image/*">
-                        <small class="text-muted">Загрузите изображение с компьютера (JPG, PNG, GIF)</small>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="img">{{ form.img.label }}</label>
-                        {{ form.img(class="form-control", id="img", placeholder="Или введите URL изображения") }}
-                        <small class="text-muted">Или укажите ссылку на изображение</small>
-                    </div>
+                <label for="img">{{ form.img.label }}</label>
+                <div class="custom-file">
+                    {{ form.img(class="custom-file-input", id="img", accept="image/*") }}
+                    <label class="custom-file-label" for="img">Выберите файл</label>
                 </div>
+                <small class="form-text text-muted">Поддерживаемые форматы: JPG, JPEG, PNG, GIF</small>
 
-                <!-- Превью изображения -->
+                <!-- Текущее изображение -->
+                {% if form.img.data and form.img.data != 'default.jpg' %}
+                <div class="mt-2">
+                    <label>Текущее изображение:</label><br>
+                    <img src="{{ url_for('static', filename='img/' + form.img.data) }}"
+                         alt="Текущее фото"
+                         style="max-width: 200px; max-height: 150px; object-fit: cover;">
+                </div>
+                {% endif %}
+
                 <div id="imagePreview" style="display: none; margin-top: 15px;">
-                    <label>Превью:</label><br>
-                    <img id="previewImg" src="" alt="Превью" style="max-width: 300px; max-height: 200px; border: 1px solid #ddd; border-radius: 5px; padding: 5px;">
+                    <label>Новое изображение:</label><br>
+                    <img id="previewImg" src="" alt="Превью" style="max-width: 200px; max-height: 150px; border: 1px solid #ddd; border-radius: 5px; padding: 5px;">
                 </div>
-
                 {% for error in form.img.errors %}
                 <p class="alert alert-danger" role="alert">
                     {{ error }}
