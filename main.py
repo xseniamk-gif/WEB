@@ -613,7 +613,7 @@ def api_tour(tour_id):
 
 def main():
     db_session.global_init("db/base.db")
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000, host='0.0.0.0')
 
 
 if __name__ == '__main__':
